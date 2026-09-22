@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import "./dashboard.css";
 
 function AuditorDashboard() {
+  const navigate = useNavigate();
+
   return (
     <section className="auditor-dashboard-content">
       {/* =========================
@@ -24,7 +27,7 @@ function AuditorDashboard() {
       {/* =========================
           OVERVIEW
       ========================= */}
-      <section className="auditor-overview-card">
+      <section className="auditor-overview">
         <div className="auditor-overview-header">
           <div>
             <h2>Audit Overview</h2>
@@ -52,9 +55,8 @@ function AuditorDashboard() {
 
           <button
             type="button"
-            onClick={() =>
-              window.location.href = "/auditor/history"
-            }
+            className="auditor-action-button"
+            onClick={() => navigate("/auditor/history")}
           >
             View History
           </button>

@@ -1,32 +1,61 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "./reportApproval.css";
 
 function ReportApproval() {
-  const navigate = useNavigate();
+  // BACKEND:
+  // هنجيب الـreports من الـBackend لما نحدد endpoint الخاص بالـreport approval.
+  // حاليًا البيانات تبدأ كـempty array بدل ما نحط mock reports.
 
   const [reports, setReports] = useState([]);
-  const [selectedReport, setSelectedReport] = useState(null);
-  const [rejectReason, setRejectReason] = useState("");
+
+  const [selectedReport, setSelectedReport] =
+    useState(null);
+
+  const [rejectReason, setRejectReason] =
+    useState("");
+
   const [message, setMessage] = useState("");
 
+  // =========================
+  // Approve Report
+  // =========================
   function handleApprove(id) {
+    // BACKEND:
+    // هنا هنستبدل الـlocal state بطلب للـBackend
+    // مثل approve endpoint حسب الـAPI contract.
+
     setReports((currentReports) =>
       currentReports.map((report) =>
         report.id === id
-          ? { ...report, status: "approved" }
+          ? {
+              ...report,
+              status: "approved",
+            }
           : report
       )
     );
 
-    setMessage("Report approved successfully.");
+    setSelectedReport(null);
+
+    setMessage(
+      "Report approved successfully."
+    );
   }
 
+  // =========================
+  // Reject Report
+  // =========================
   function handleReject(id) {
     if (!rejectReason.trim()) {
-      setMessage("Please enter a rejection reason.");
+      setMessage(
+        "Please enter a rejection reason."
+      );
       return;
     }
+
+    // BACKEND:
+    // الـrejection reason لازم يتسجل مع الـreport
+    // ويتم تسجيل الـaction في الـaudit trail.
 
     setReports((currentReports) =>
       currentReports.map((report) =>
@@ -34,7 +63,8 @@ function ReportApproval() {
           ? {
               ...report,
               status: "rejected",
-              rejection_reason: rejectReason,
+              rejection_reason:
+                rejectReason.trim(),
             }
           : report
       )
@@ -42,7 +72,25 @@ function ReportApproval() {
 
     setRejectReason("");
     setSelectedReport(null);
+
     setMessage("Report rejected.");
+  }
+
+  // =========================
+  // Open Report Details
+  // =========================
+  function handleViewReport(report) {
+    setRejectReason("");
+    setMessage("");
+    setSelectedReport(report);
+  }
+
+  // =========================
+  // Close Details
+  // =========================
+  function handleCloseDetails() {
+    setSelectedReport(null);
+    setRejectReason("");
   }
 
   return (
@@ -83,14 +131,16 @@ function ReportApproval() {
             <h2>Submitted Reports</h2>
 
             <p>
-              Review reports and take the appropriate
-              action.
+              Review reports and take the
+              appropriate action.
             </p>
           </div>
 
           <span className="reports-count">
             {reports.length}{" "}
-            {reports.length === 1 ? "Report" : "Reports"}
+            {reports.length === 1
+              ? "Report"
+              : "Reports"}
           </span>
         </div>
 
@@ -101,8 +151,8 @@ function ReportApproval() {
             <h3>No pending reports</h3>
 
             <p>
-              There are currently no reports waiting
-              for approval.
+              There are currently no reports
+              waiting for approval.
             </p>
           </div>
         ) : (
@@ -126,11 +176,17 @@ function ReportApproval() {
                       #{report.id}
                     </td>
 
-                    <td>{report.course}</td>
+                    <td>
+                      {report.course || "--"}
+                    </td>
 
-                    <td>{report.section}</td>
+                    <td>
+                      {report.section || "--"}
+                    </td>
 
-                    <td>{report.submitted_by}</td>
+                    <td>
+                      {report.submitted_by || "--"}
+                    </td>
 
                     <td>
                       <span
@@ -146,19 +202,24 @@ function ReportApproval() {
                           type="button"
                           className="report-view-button"
                           onClick={() =>
-                            setSelectedReport(report)
+                            handleViewReport(
+                              report
+                            )
                           }
                         >
                           View
                         </button>
 
-                        {report.status === "pending" && (
+                        {report.status ===
+                          "pending" && (
                           <>
                             <button
                               type="button"
                               className="report-approve-button"
                               onClick={() =>
-                                handleApprove(report.id)
+                                handleApprove(
+                                  report.id
+                                )
                               }
                             >
                               Approve
@@ -168,7 +229,9 @@ function ReportApproval() {
                               type="button"
                               className="report-reject-button"
                               onClick={() =>
-                                setSelectedReport(report)
+                                handleViewReport(
+                                  report
+                                )
                               }
                             >
                               Reject
@@ -204,15 +267,19 @@ function ReportApproval() {
             <button
               type="button"
               className="report-close-button"
-              onClick={() => setSelectedReport(null)}
+              onClick={handleCloseDetails}
             >
               ×
             </button>
           </div>
 
+          {/* =========================
+              DETAILS
+          ========================= */}
           <div className="report-details-grid">
             <div className="report-detail-item">
               <span>Report ID</span>
+
               <strong>
                 #{selectedReport.id}
               </strong>
@@ -220,22 +287,26 @@ function ReportApproval() {
 
             <div className="report-detail-item">
               <span>Course</span>
+
               <strong>
-                {selectedReport.course}
+                {selectedReport.course || "--"}
               </strong>
             </div>
 
             <div className="report-detail-item">
               <span>Section</span>
+
               <strong>
-                {selectedReport.section}
+                {selectedReport.section || "--"}
               </strong>
             </div>
 
             <div className="report-detail-item">
               <span>Submitted By</span>
+
               <strong>
-                {selectedReport.submitted_by}
+                {selectedReport.submitted_by ||
+                  "--"}
               </strong>
             </div>
 
@@ -250,39 +321,63 @@ function ReportApproval() {
             </div>
           </div>
 
-          {/* Rejection */}
+          {/* =========================
+              PENDING ACTIONS
+          ========================= */}
           {selectedReport.status === "pending" && (
-            <div className="rejection-section">
-              <label htmlFor="rejectReason">
-                Rejection Reason
-              </label>
-
-              <textarea
-                id="rejectReason"
-                placeholder="Enter the reason for rejecting this report..."
-                value={rejectReason}
-                onChange={(e) =>
-                  setRejectReason(e.target.value)
-                }
-                rows="4"
-              />
-
+            <div className="report-pending-actions">
               <button
                 type="button"
-                className="reject-report-button"
+                className="report-details-approve-button"
                 onClick={() =>
-                  handleReject(selectedReport.id)
+                  handleApprove(
+                    selectedReport.id
+                  )
                 }
               >
-                Reject Report
+                Approve Report
               </button>
+
+              <div className="rejection-section">
+                <label htmlFor="rejectReason">
+                  Rejection Reason
+                </label>
+
+                <textarea
+                  id="rejectReason"
+                  placeholder="Enter the reason for rejecting this report..."
+                  value={rejectReason}
+                  onChange={(e) =>
+                    setRejectReason(
+                      e.target.value
+                    )
+                  }
+                  rows="4"
+                />
+
+                <button
+                  type="button"
+                  className="reject-report-button"
+                  onClick={() =>
+                    handleReject(
+                      selectedReport.id
+                    )
+                  }
+                >
+                  Reject Report
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Existing rejection reason */}
+          {/* =========================
+              EXISTING REJECTION
+          ========================= */}
           {selectedReport.rejection_reason && (
             <div className="existing-rejection">
-              <span>Rejection Reason</span>
+              <span>
+                Rejection Reason
+              </span>
 
               <p>
                 {selectedReport.rejection_reason}
@@ -290,11 +385,14 @@ function ReportApproval() {
             </div>
           )}
 
+          {/* =========================
+              FOOTER
+          ========================= */}
           <div className="report-details-footer">
             <button
               type="button"
               className="close-details-button"
-              onClick={() => setSelectedReport(null)}
+              onClick={handleCloseDetails}
             >
               Close
             </button>

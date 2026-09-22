@@ -12,8 +12,6 @@ function AdminLayout() {
       ? "Management"
       : location.pathname === "/admin/timetable"
       ? "Timetable"
-      : location.pathname === "/admin/reports"
-      ? "Reports"
       : location.pathname === "/admin/report-approval"
       ? "Report Approval"
       : "Admin";
@@ -38,6 +36,7 @@ function AdminLayout() {
         </div>
 
         <nav className="admin-sidebar-nav">
+          {/* Dashboard */}
           <button
             type="button"
             className={`admin-nav-item ${
@@ -49,6 +48,7 @@ function AdminLayout() {
             <span>Dashboard</span>
           </button>
 
+          {/* Management */}
           <button
             type="button"
             className={`admin-nav-item ${
@@ -60,6 +60,7 @@ function AdminLayout() {
             <span>Management</span>
           </button>
 
+          {/* Timetable */}
           <button
             type="button"
             className={`admin-nav-item ${
@@ -71,17 +72,7 @@ function AdminLayout() {
             <span>Timetable</span>
           </button>
 
-          <button
-            type="button"
-            className={`admin-nav-item ${
-              location.pathname === "/admin/reports" ? "active" : ""
-            }`}
-            onClick={() => navigate("/admin/reports")}
-          >
-            <span>▤</span>
-            <span>Reports</span>
-          </button>
-
+          {/* Report Approval */}
           <button
             type="button"
             className={`admin-nav-item ${
@@ -94,6 +85,7 @@ function AdminLayout() {
           </button>
         </nav>
 
+        {/* ================= SIDEBAR BOTTOM ================= */}
         <div className="admin-sidebar-bottom">
           <button
             type="button"

@@ -1,4 +1,3 @@
-
 import { Navigate } from "react-router-dom";
 
 function ProtectedRoute({ children, allowedRoles = ["student"] }) {
@@ -17,4 +16,3 @@ function ProtectedRoute({ children, allowedRoles = ["student"] }) {
 }
 
 export default ProtectedRoute;
-

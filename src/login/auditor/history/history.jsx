@@ -12,15 +12,13 @@ function AuditorHistory() {
   async function getAuditEvents() {
     try {
       setLoading(true);
+      setMessage("");
 
-      const response = await api.get(
-        "/audit-events",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await api.get("/audit-events", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       console.log("Audit events:", response.data);
 
@@ -101,15 +99,19 @@ function AuditorHistory() {
           </span>
         </div>
 
+        {/* =========================
+            LOADING
+        ========================= */}
         {loading ? (
           <div className="auditor-history-loading">
-            <div className="loading-icon">
-              ◌
-            </div>
+            <div className="loading-icon">◌</div>
 
             <p>Loading audit events...</p>
           </div>
         ) : events.length === 0 ? (
+          /* =========================
+             EMPTY
+          ========================= */
           <div className="auditor-history-empty">
             <span>▤</span>
 
@@ -121,6 +123,9 @@ function AuditorHistory() {
             </p>
           </div>
         ) : (
+          /* =========================
+             TABLE
+          ========================= */
           <div className="audit-table-wrapper">
             <table className="audit-table">
               <thead>

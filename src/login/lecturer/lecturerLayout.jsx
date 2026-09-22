@@ -10,6 +10,8 @@ function LecturerLayout() {
       ? "Open Session"
       : location.pathname === "/lecturer/showqr"
       ? "Show QR"
+      : location.pathname === "/lecturer/roster"
+      ? "Live Roster"
       : location.pathname === "/lecturer/corrections"
       ? "Pending Corrections"
       : "Lecturer";
@@ -21,9 +23,11 @@ function LecturerLayout() {
 
   return (
     <div className="lecturer-dashboard">
+
       {/* ================= SIDEBAR ================= */}
 
       <aside className="sidebar">
+
         <div className="sidebar-logo">
           <div className="logo-icon">A</div>
 
@@ -33,7 +37,11 @@ function LecturerLayout() {
           </div>
         </div>
 
+
         <nav className="sidebar-nav">
+
+          {/* Open Session */}
+
           <button
             type="button"
             className={`nav-item ${
@@ -45,10 +53,15 @@ function LecturerLayout() {
             <span>Open Session</span>
           </button>
 
+
+          {/* Show QR */}
+
           <button
             type="button"
             className={`nav-item ${
-              location.pathname === "/lecturer/showqr" ? "active" : ""
+              location.pathname === "/lecturer/showqr"
+                ? "active"
+                : ""
             }`}
             onClick={() => navigate("/lecturer/showqr")}
           >
@@ -56,19 +69,47 @@ function LecturerLayout() {
             <span>Show QR</span>
           </button>
 
+
+          {/* Live Roster */}
+
           <button
             type="button"
             className={`nav-item ${
-              location.pathname === "/lecturer/corrections" ? "active" : ""
+              location.pathname === "/lecturer/roster"
+                ? "active"
+                : ""
             }`}
-            onClick={() => navigate("/lecturer/corrections")}
+            onClick={() => navigate("/lecturer/roster")}
+          >
+            <span>☷</span>
+            <span>Live Roster</span>
+          </button>
+
+
+          {/* Pending Corrections */}
+
+          <button
+            type="button"
+            className={`nav-item ${
+              location.pathname === "/lecturer/corrections"
+                ? "active"
+                : ""
+            }`}
+            onClick={() =>
+              navigate("/lecturer/corrections")
+            }
           >
             <span>✓</span>
             <span>Pending Corrections</span>
           </button>
+
         </nav>
 
+
+        {/* ================= SIDEBAR BOTTOM ================= */}
+
         <div className="sidebar-bottom">
+
           <button
             type="button"
             className="nav-item logout-button"
@@ -77,38 +118,57 @@ function LecturerLayout() {
             <span>↪</span>
             <span>Logout</span>
           </button>
+
         </div>
+
       </aside>
+
 
       {/* ================= MAIN ================= */}
 
       <main className="dashboard-main">
+
         {/* ================= TOPBAR ================= */}
 
         <header className="topbar">
-          <div className="breadcrumb">
-            <span className="breadcrumb-link">Lecturer</span>
 
-            <span className="breadcrumb-separator">›</span>
+          <div className="breadcrumb">
+
+            <span className="breadcrumb-link">
+              Lecturer
+            </span>
+
+            <span className="breadcrumb-separator">
+              ›
+            </span>
 
             <span className="breadcrumb-current">
               {currentPage}
             </span>
+
           </div>
 
+
           <div className="topbar-right">
+
             <button
               type="button"
               className="notification-button"
             >
               🔔
+
               <span className="notification-dot"></span>
             </button>
 
+
             <div className="user-mini">
-              <div className="user-avatar">DA</div>
+
+              <div className="user-avatar">
+                DA
+              </div>
 
               <div className="user-mini-info">
+
                 <span className="user-name">
                   Dr. Ahmed Hassan
                 </span>
@@ -116,15 +176,22 @@ function LecturerLayout() {
                 <span className="user-role">
                   Lecturer
                 </span>
+
               </div>
+
             </div>
+
           </div>
+
         </header>
+
 
         {/* ================= PAGE ================= */}
 
         <Outlet />
+
       </main>
+
     </div>
   );
 }

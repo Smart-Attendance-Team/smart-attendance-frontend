@@ -17,6 +17,7 @@ import MyCorrections from "../student/correction/myCorrection";
 import LecturerLayout from "../lecturer/lecturerLayout";
 import OpenSession from "../lecturer/openSession/openSession";
 import ShowQR from "../lecturer/showQR/showQR";
+import Roster from "../lecturer/roster/roster";
 import PendingCorrections from "../lecturer/modifyCorrections/modifyCorrections";
 
 // ================= ADMIN =================
@@ -35,63 +36,46 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         {/* ================= LOGIN ================= */}
-
         <Route path="/" element={<Login />} />
 
-
         {/* ================= STUDENT ================= */}
-
         <Route element={<StudentLayout />}>
-
-          <Route
-            path="/home"
-            element={<Home />}
-          />
-
+          <Route path="/home" element={<Home />} />
           <Route
             path="/timetable"
             element={<StudentTimetable />}
           />
-
           <Route
             path="/qrscanner"
             element={<QRScanner />}
           />
-
-          <Route
-            path="/history"
-            element={<History />}
-          />
-
+          <Route path="/history" element={<History />} />
           <Route
             path="/correction"
             element={<Correction />}
           />
-
           <Route
             path="/corrections"
             element={<MyCorrections />}
           />
-
         </Route>
 
-
         {/* ================= LECTURER / TA ================= */}
-
         <Route
           path="/lecturer"
           element={<LecturerLayout />}
         >
-          <Route
-            index
-            element={<OpenSession />}
-          />
+          <Route index element={<OpenSession />} />
 
           <Route
             path="showqr"
             element={<ShowQR />}
+          />
+
+          <Route
+            path="roster"
+            element={<Roster />}
           />
 
           <Route
@@ -100,17 +84,12 @@ function App() {
           />
         </Route>
 
-
         {/* ================= ADMIN ================= */}
-
         <Route
           path="/admin"
           element={<AdminLayout />}
         >
-          <Route
-            index
-            element={<AdminDashboard />}
-          />
+          <Route index element={<AdminDashboard />} />
 
           <Route
             path="management"
@@ -128,9 +107,7 @@ function App() {
           />
         </Route>
 
-
         {/* ================= AUDITOR ================= */}
-
         <Route
           path="/auditor"
           element={<AuditorLayout />}
@@ -145,7 +122,6 @@ function App() {
             element={<AuditorHistory />}
           />
         </Route>
-
       </Routes>
     </BrowserRouter>
   );

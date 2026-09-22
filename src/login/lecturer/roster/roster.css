@@ -1,0 +1,415 @@
+.roster-page {
+  padding: 30px;
+  background: #f8f9fc;
+  min-height: calc(100vh - 76px);
+}
+
+
+/* ================= HEADER ================= */
+
+.roster-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.roster-header h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+  color: #252936;
+}
+
+.roster-header p {
+  margin: 0;
+  color: #7b8190;
+  font-size: 14px;
+}
+
+.session-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #e9f8ef;
+  color: #239653;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: #28a45b;
+  border-radius: 50%;
+}
+
+
+/* ================= SESSION CARD ================= */
+
+.session-card {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  background: white;
+  border: 1px solid #e8ebf0;
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 22px;
+}
+
+.session-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.session-label {
+  color: #8a90a0;
+  font-size: 12px;
+}
+
+.session-info strong {
+  color: #292d38;
+  font-size: 15px;
+}
+
+
+/* ================= STATISTICS ================= */
+
+.roster-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.roster-stat-card {
+  background: white;
+  border: 1px solid #e8ebf0;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.roster-stat-card span {
+  display: block;
+  color: #7b8190;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.roster-stat-card strong {
+  font-size: 25px;
+  color: #303441;
+}
+
+.roster-stat-card.present strong {
+  color: #239653;
+}
+
+.roster-stat-card.absent strong {
+  color: #dc5555;
+}
+
+.roster-stat-card.excused strong {
+  color: #d18b25;
+}
+
+
+/* ================= TABLE ================= */
+
+.roster-card {
+  background: white;
+  border: 1px solid #e8ebf0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.roster-card-header {
+  padding: 22px;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.roster-card-header h2 {
+  margin: 0 0 5px;
+  font-size: 18px;
+  color: #292d38;
+}
+
+.roster-card-header p {
+  margin: 0;
+  color: #858b99;
+  font-size: 13px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #f8f9fc;
+}
+
+th {
+  padding: 14px 20px;
+  text-align: left;
+  color: #737987;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+td {
+  padding: 16px 20px;
+  border-top: 1px solid #edf0f4;
+  color: #4b505c;
+  font-size: 13px;
+}
+
+
+/* ================= STUDENT ================= */
+
+.student-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #303441;
+  font-weight: 500;
+}
+
+.student-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #eeeffd;
+  color: #6267d8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+
+/* ================= STATUS ================= */
+
+.attendance-status {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.attendance-status.present {
+  background: #e9f8ef;
+  color: #239653;
+}
+
+.attendance-status.absent {
+  background: #fdecec;
+  color: #d95757;
+}
+
+.attendance-status.excused {
+  background: #fff4df;
+  color: #c48321;
+}
+
+
+/* ================= ACTIONS ================= */
+
+.action-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.action-buttons button {
+  border: none;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.present-button {
+  background: #e9f8ef;
+  color: #239653;
+}
+
+.absent-button {
+  background: #fdecec;
+  color: #d95757;
+}
+
+.excused-button {
+  background: #fff4df;
+  color: #c48321;
+}
+
+.action-buttons button:hover {
+  opacity: 0.8;
+}
+
+
+/* ================= MODAL ================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 24, 35, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.correction-modal {
+  width: min(500px, calc(100% - 40px));
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 22px;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #292d38;
+}
+
+.close-button {
+  border: none;
+  background: transparent;
+  font-size: 25px;
+  color: #777d8a;
+  cursor: pointer;
+}
+
+.modal-content {
+  padding: 22px;
+}
+
+.modal-content p {
+  margin: 0 0 5px;
+  color: #777d8a;
+  font-size: 13px;
+}
+
+.modal-content > strong {
+  display: block;
+  margin-bottom: 18px;
+  color: #292d38;
+}
+
+.new-status {
+  margin-bottom: 18px;
+  font-size: 13px;
+  color: #777d8a;
+}
+
+.new-status span {
+  margin-left: 6px;
+  font-weight: 600;
+  color: #6267d8;
+}
+
+.modal-content label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3b3f4a;
+}
+
+.modal-content label span {
+  color: #d95757;
+}
+
+.modal-content textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid #dfe3ea;
+  border-radius: 8px;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.modal-content textarea:focus {
+  border-color: #6b6fe5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-actions button {
+  border: none;
+  border-radius: 7px;
+  padding: 10px 15px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel-button {
+  background: #f1f2f5;
+  color: #555b68;
+}
+
+.confirm-button {
+  background: #6b6fe5;
+  color: white;
+}
+
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 900px) {
+  .session-card {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .roster-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .roster-page {
+    padding: 20px;
+  }
+
+  .roster-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .session-card {
+    grid-template-columns: 1fr;
+  }
+
+  .roster-stats {
+    grid-template-columns: 1fr;
+  }
+}

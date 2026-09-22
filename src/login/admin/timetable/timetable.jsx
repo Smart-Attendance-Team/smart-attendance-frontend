@@ -5,11 +5,17 @@ import "./timetable.css";
 function Timetable() {
   const token = localStorage.getItem("token");
 
+  // =========================
+  // Data
+  // =========================
   const [slots, setSlots] = useState([]);
   const [courses, setCourses] = useState([]);
   const [sections, setSections] = useState([]);
   const [rooms, setRooms] = useState([]);
 
+  // =========================
+  // Form
+  // =========================
   const [courseId, setCourseId] = useState("");
   const [sectionId, setSectionId] = useState("");
   const [roomId, setRoomId] = useState("");
@@ -18,8 +24,14 @@ function Timetable() {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
+  // =========================
+  // Message
+  // =========================
   const [message, setMessage] = useState("");
 
+  // =========================
+  // Load Courses / Sections / Rooms
+  // =========================
   async function loadData() {
     try {
       const headers = {
@@ -36,19 +48,48 @@ function Timetable() {
         api.get("/admin/rooms", { headers }),
       ]);
 
-      setCourses(coursesResponse.data);
-      setSections(sectionsResponse.data);
-      setRooms(roomsResponse.data);
+      const coursesData = Array.isArray(
+        coursesResponse.data
+      )
+        ? coursesResponse.data
+        : coursesResponse.data.courses || [];
+
+      const sectionsData = Array.isArray(
+        sectionsResponse.data
+      )
+        ? sectionsResponse.data
+        : sectionsResponse.data.sections || [];
+
+      const roomsData = Array.isArray(
+        roomsResponse.data
+      )
+        ? roomsResponse.data
+        : roomsResponse.data.rooms || [];
+
+      setCourses(coursesData);
+      setSections(sectionsData);
+      setRooms(roomsData);
+
+      console.log("Courses:", coursesData);
+      console.log("Sections:", sectionsData);
+      console.log("Rooms:", roomsData);
     } catch (error) {
-      console.log("Load timetable data error:", error);
+      console.log(
+        "Load timetable data error:",
+        error
+      );
 
       setMessage(
         error.response?.data?.error ||
+          error.response?.data?.message ||
           "Failed to load timetable data."
       );
     }
   }
 
+  // =========================
+  // Load Timetable Slots
+  // =========================
   async function getSlots() {
     try {
       const response = await api.get(
@@ -62,22 +103,33 @@ function Timetable() {
 
       console.log("Timetable:", response.data);
 
-      setSlots(response.data);
+      const slotsData = Array.isArray(response.data)
+        ? response.data
+        : response.data.slots || [];
+
+      setSlots(slotsData);
     } catch (error) {
       console.log("Timetable error:", error);
 
       setMessage(
         error.response?.data?.error ||
+          error.response?.data?.message ||
           "Failed to load timetable."
       );
     }
   }
 
+  // =========================
+  // Initial Load
+  // =========================
   useEffect(() => {
     loadData();
     getSlots();
   }, []);
 
+  // =========================
+  // Add Timetable Slot
+  // =========================
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -92,6 +144,16 @@ function Timetable() {
       !endTime
     ) {
       setMessage("Please fill all fields.");
+      return;
+    }
+
+    // =========================
+    // Validate Time
+    // =========================
+    if (endTime <= startTime) {
+      setMessage(
+        "End time must be later than start time."
+      );
       return;
     }
 
@@ -113,12 +175,16 @@ function Timetable() {
         }
       );
 
-      console.log("Created timetable:", response.data);
+      console.log(
+        "Created timetable:",
+        response.data
+      );
 
       setMessage(
         "Timetable slot created successfully."
       );
 
+      // Reset form
       setCourseId("");
       setSectionId("");
       setRoomId("");
@@ -128,9 +194,20 @@ function Timetable() {
 
       getSlots();
     } catch (error) {
-      console.log("Create timetable error:", error);
-      console.log("Response:", error.response);
-      console.log("Data:", error.response?.data);
+      console.log(
+        "Create timetable error:",
+        error
+      );
+
+      console.log(
+        "Response:",
+        error.response
+      );
+
+      console.log(
+        "Data:",
+        error.response?.data
+      );
 
       setMessage(
         error.response?.data?.error ||
@@ -138,6 +215,69 @@ function Timetable() {
           "Failed to create timetable slot."
       );
     }
+  }
+
+  // =========================
+  // Helpers
+  // =========================
+  function getSectionId(section) {
+    return (
+      section.id ??
+      section.section_id ??
+      section.sectionId
+    );
+  }
+
+  function getCourseById(id) {
+    return courses.find(
+      (course) =>
+        String(course.id) === String(id)
+    );
+  }
+
+  function getSectionById(id) {
+    return sections.find(
+      (section) =>
+        String(getSectionId(section)) ===
+        String(id)
+    );
+  }
+
+  function getRoomById(id) {
+    return rooms.find(
+      (room) =>
+        String(room.id) === String(id)
+    );
+  }
+
+  function getCourseLabel(id) {
+    const course = getCourseById(id);
+
+    if (!course) {
+      return `Course #${id}`;
+    }
+
+    return `${course.course_code} - ${course.course_name}`;
+  }
+
+  function getSectionLabel(id) {
+    const section = getSectionById(id);
+
+    if (!section) {
+      return `Section #${id}`;
+    }
+
+    return section.section_name;
+  }
+
+  function getRoomLabel(id) {
+    const room = getRoomById(id);
+
+    if (!room) {
+      return `Room #${id}`;
+    }
+
+    return `${room.room_code} - ${room.room_name}`;
   }
 
   return (
@@ -229,14 +369,18 @@ function Timetable() {
                   Select Section
                 </option>
 
-                {sections.map((section) => (
-                  <option
-                    key={section.id}
-                    value={section.id}
-                  >
-                    {section.section_name}
-                  </option>
-                ))}
+                {sections.map((section) => {
+                  const id = getSectionId(section);
+
+                  return (
+                    <option
+                      key={id}
+                      value={id}
+                    >
+                      {section.section_name}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
@@ -280,6 +424,10 @@ function Timetable() {
                   Select Day
                 </option>
 
+                <option value="Saturday">
+                  Saturday
+                </option>
+
                 <option value="Sunday">
                   Sunday
                 </option>
@@ -298,10 +446,6 @@ function Timetable() {
 
                 <option value="Thursday">
                   Thursday
-                </option>
-
-                <option value="Saturday">
-                  Saturday
                 </option>
               </select>
             </div>
@@ -357,7 +501,9 @@ function Timetable() {
 
           <span className="slots-count">
             {slots.length}{" "}
-            {slots.length === 1 ? "Slot" : "Slots"}
+            {slots.length === 1
+              ? "Slot"
+              : "Slots"}
           </span>
         </div>
 
@@ -374,6 +520,9 @@ function Timetable() {
                 className="slot-card"
                 key={slot.id}
               >
+                {/* =========================
+                    DAY + TIME
+                ========================= */}
                 <div className="slot-card-top">
                   <span className="slot-day">
                     {slot.day_of_week}
@@ -385,34 +534,42 @@ function Timetable() {
                   </span>
                 </div>
 
+                {/* =========================
+                    COURSE
+                ========================= */}
+                <div className="slot-main-info">
+                  <span className="slot-course">
+                    {getCourseLabel(
+                      slot.course_id
+                    )}
+                  </span>
+                </div>
+
+                {/* =========================
+                    DETAILS
+                ========================= */}
                 <div className="slot-details">
                   <div className="slot-detail">
                     <span className="slot-label">
-                      Course ID
+                      Section
                     </span>
 
                     <strong>
-                      {slot.course_id}
+                      {getSectionLabel(
+                        slot.section_id
+                      )}
                     </strong>
                   </div>
 
                   <div className="slot-detail">
                     <span className="slot-label">
-                      Section ID
+                      Room / Lab
                     </span>
 
                     <strong>
-                      {slot.section_id}
-                    </strong>
-                  </div>
-
-                  <div className="slot-detail">
-                    <span className="slot-label">
-                      Room ID
-                    </span>
-
-                    <strong>
-                      {slot.room_id}
+                      {getRoomLabel(
+                        slot.room_id
+                      )}
                     </strong>
                   </div>
                 </div>

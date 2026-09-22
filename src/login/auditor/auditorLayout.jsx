@@ -20,9 +20,7 @@ function AuditorLayout() {
 
   return (
     <div className="auditor-dashboard">
-      {/* =========================
-          SIDEBAR
-      ========================= */}
+      {/* ================= SIDEBAR ================= */}
       <aside className="auditor-sidebar">
         <div className="auditor-sidebar-logo">
           <div className="auditor-logo-icon">A</div>
@@ -34,6 +32,7 @@ function AuditorLayout() {
         </div>
 
         <nav className="auditor-sidebar-nav">
+          {/* Dashboard */}
           <button
             type="button"
             className={`auditor-nav-item ${
@@ -45,12 +44,11 @@ function AuditorLayout() {
             <span>Dashboard</span>
           </button>
 
+          {/* Audit History */}
           <button
             type="button"
             className={`auditor-nav-item ${
-              location.pathname === "/auditor/history"
-                ? "active"
-                : ""
+              location.pathname === "/auditor/history" ? "active" : ""
             }`}
             onClick={() => navigate("/auditor/history")}
           >
@@ -59,6 +57,7 @@ function AuditorLayout() {
           </button>
         </nav>
 
+        {/* ================= SIDEBAR BOTTOM ================= */}
         <div className="auditor-sidebar-bottom">
           <button
             type="button"
@@ -71,11 +70,9 @@ function AuditorLayout() {
         </div>
       </aside>
 
-      {/* =========================
-          MAIN
-      ========================= */}
+      {/* ================= MAIN ================= */}
       <main className="auditor-main">
-        {/* TOPBAR */}
+        {/* ================= TOPBAR ================= */}
         <header className="auditor-topbar">
           <div className="auditor-breadcrumb">
             <span className="auditor-breadcrumb-link">
@@ -118,7 +115,7 @@ function AuditorLayout() {
           </div>
         </header>
 
-        {/* PAGE CONTENT */}
+        {/* ================= PAGE CONTENT ================= */}
         <Outlet />
       </main>
     </div>

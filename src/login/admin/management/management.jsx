@@ -32,28 +32,40 @@ function Management() {
   const [sectionName, setSectionName] = useState("");
   const [courseId, setCourseId] = useState("");
 
-  
+  // =========================
+  // Enrollment
+  // =========================
   const [studentId, setStudentId] = useState("");
-  const [enrollmentSectionId, setEnrollmentSectionId] = useState("");
+  const [enrollmentSectionId, setEnrollmentSectionId] =
+    useState("");
 
-  
+  // =========================
+  // Teaching Staff
+  // =========================
   const [staffName, setStaffName] = useState("");
   const [staffEmail, setStaffEmail] = useState("");
   const [staffRole, setStaffRole] = useState("lecturer");
 
-  
+  // =========================
+  // CSV Import
+  // =========================
   const [csvFile, setCsvFile] = useState(null);
   const [defaultPassword, setDefaultPassword] = useState("");
   const [importSectionId, setImportSectionId] = useState("");
-  const [importDepartmentId, setImportDepartmentId] = useState("");
+  const [importDepartmentId, setImportDepartmentId] =
+    useState("");
   const [importMessage, setImportMessage] = useState("");
   const [importResult, setImportResult] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
 
- 
+  // =========================
+  // General Message
+  // =========================
   const [message, setMessage] = useState("");
 
-  
+  // =========================
+  // Load Courses / Rooms / Sections
+  // =========================
   async function loadData() {
     try {
       const headers = {
@@ -78,7 +90,9 @@ function Management() {
         ? roomsResponse.data
         : roomsResponse.data.rooms || [];
 
-      const sectionsData = Array.isArray(sectionsResponse.data)
+      const sectionsData = Array.isArray(
+        sectionsResponse.data
+      )
         ? sectionsResponse.data
         : sectionsResponse.data.sections || [];
 
@@ -102,7 +116,9 @@ function Management() {
     }
   }
 
-  
+  // =========================
+  // Load Teaching Staff
+  // =========================
   async function loadStaff() {
     try {
       const response = await api.get("/admin/staff", {
@@ -129,12 +145,17 @@ function Management() {
     }
   }
 
+  // =========================
+  // Initial Load
+  // =========================
   useEffect(() => {
     loadData();
     loadStaff();
   }, []);
 
-  
+  // =========================
+  // Add Course
+  // =========================
   async function handleAddCourse(e) {
     e.preventDefault();
     setMessage("");
@@ -174,7 +195,9 @@ function Management() {
     }
   }
 
-
+  // =========================
+  // Add Room
+  // =========================
   async function handleAddRoom(e) {
     e.preventDefault();
     setMessage("");
@@ -216,7 +239,9 @@ function Management() {
     }
   }
 
-
+  // =========================
+  // Add Section
+  // =========================
   async function handleAddSection(e) {
     e.preventDefault();
     setMessage("");
@@ -261,6 +286,9 @@ function Management() {
     }
   }
 
+  // =========================
+  // Enrollment
+  // =========================
   async function handleEnrollment(e) {
     e.preventDefault();
     setMessage("");
@@ -305,6 +333,9 @@ function Management() {
     }
   }
 
+  // =========================
+  // Add Teaching Staff
+  // =========================
   async function handleAddStaff(e) {
     e.preventDefault();
     setMessage("");
@@ -326,7 +357,9 @@ function Management() {
 
       console.log("Staff added:", response.data);
 
-      setMessage("Teaching staff added successfully.");
+      setMessage(
+        "Teaching staff added successfully."
+      );
 
       setStaffName("");
       setStaffEmail("");
@@ -345,6 +378,93 @@ function Management() {
       );
     }
   }
+
+  // =========================
+  // Get Rejected Rows
+  // =========================
+  function getRejectedRows(result) {
+    if (!result) {
+      return [];
+    }
+
+    if (Array.isArray(result.rejected_rows)) {
+      return result.rejected_rows;
+    }
+
+    if (Array.isArray(result.rejectedRows)) {
+      return result.rejectedRows;
+    }
+
+    if (Array.isArray(result.rejected)) {
+      return result.rejected;
+    }
+
+    if (Array.isArray(result.errors)) {
+      return result.errors;
+    }
+
+    return [];
+  }
+
+  // =========================
+  // Download Rejected Rows
+  // =========================
+  function handleDownloadRejectedRows() {
+    const rejectedRows = getRejectedRows(importResult);
+
+    if (rejectedRows.length === 0) {
+      return;
+    }
+
+    const headers = [
+      "row",
+      "student_code",
+      "student_name",
+      "email",
+      "reason",
+    ];
+
+    const csvRows = [
+      headers.join(","),
+      ...rejectedRows.map((row) => {
+        return headers
+          .map((header) => {
+            const value =
+              row?.[header] ??
+              row?.data?.[header] ??
+              "";
+
+            return `"${String(value)
+              .replace(/"/g, '""')
+              .replace(/\n/g, " ")}"`;
+          })
+          .join(",");
+      }),
+    ];
+
+    const blob = new Blob(
+      [csvRows.join("\n")],
+      {
+        type: "text/csv;charset=utf-8;",
+      }
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "rejected-students.csv";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
+  }
+
+  // =========================
+  // Student CSV Import
+  // =========================
   async function handleStudentImport(e) {
     e.preventDefault();
 
@@ -357,7 +477,9 @@ function Management() {
     }
 
     if (!defaultPassword.trim()) {
-      setImportMessage("Please enter a default password.");
+      setImportMessage(
+        "Please enter a default password."
+      );
       return;
     }
 
@@ -382,15 +504,23 @@ function Management() {
         defaultPassword
       );
 
+      // =========================
+      // Section
+      // =========================
       if (importSectionId) {
-        const selectedSection = sections.find((section) => {
-          const id =
-            section.id ??
-            section.section_id ??
-            section.sectionId;
+        const selectedSection = sections.find(
+          (section) => {
+            const id =
+              section.id ??
+              section.section_id ??
+              section.sectionId;
 
-          return String(id) === String(importSectionId);
-        });
+            return (
+              String(id) ===
+              String(importSectionId)
+            );
+          }
+        );
 
         console.log(
           "SELECTED SECTION OBJECT:",
@@ -409,14 +539,8 @@ function Management() {
           selectedSection.section_id ??
           selectedSection.sectionId;
 
-        console.log("REAL SECTION ID:", realSectionId);
-
-        const sectionNumber = Number(realSectionId);
-
-        console.log("SECTION NUMBER:", sectionNumber);
-        console.log(
-          "SECTION NUMBER TYPE:",
-          typeof sectionNumber
+        const sectionNumber = Number(
+          realSectionId
         );
 
         if (!Number.isInteger(sectionNumber)) {
@@ -432,6 +556,9 @@ function Management() {
         );
       }
 
+      // =========================
+      // Department
+      // =========================
       if (importDepartmentId) {
         const departmentNumber = Number(
           importDepartmentId
@@ -472,9 +599,20 @@ function Management() {
       );
 
       setImportResult(response.data);
-      setImportMessage(
-        "Students imported successfully."
+
+      const rejectedRows = getRejectedRows(
+        response.data
       );
+
+      if (rejectedRows.length > 0) {
+        setImportMessage(
+          `Import completed with ${rejectedRows.length} rejected row(s).`
+        );
+      } else {
+        setImportMessage(
+          "Students imported successfully."
+        );
+      }
 
       setCsvFile(null);
       setDefaultPassword("");
@@ -506,9 +644,13 @@ function Management() {
     }
   }
 
+  const rejectedRows = getRejectedRows(importResult);
+
   return (
     <section className="management-content">
-      
+      {/* =========================
+          PAGE HEADER
+      ========================= */}
       <div className="management-page-header">
         <div>
           <span className="management-small-title">
@@ -518,18 +660,24 @@ function Management() {
           <h1>Management</h1>
 
           <p>
-            Manage courses, rooms, sections, staff, and
-            student enrollment.
+            Manage courses, rooms, sections, staff,
+            and student enrollment.
           </p>
         </div>
       </div>
 
-    
+      {/* =========================
+          GENERAL MESSAGE
+      ========================= */}
       {message && (
         <div className="management-message">
           {message}
         </div>
       )}
+
+      {/* =========================
+          COURSES
+      ========================= */}
       <section className="management-card">
         <div className="management-card-header">
           <div>
@@ -663,6 +811,7 @@ function Management() {
 
               <input
                 type="number"
+                min="1"
                 value={capacity}
                 onChange={(e) =>
                   setCapacity(e.target.value)
@@ -728,7 +877,10 @@ function Management() {
         <div className="management-card-header">
           <div>
             <h2>Sections</h2>
-            <p>Create sections and assign them to courses.</p>
+            <p>
+              Create sections and assign them to
+              courses.
+            </p>
           </div>
         </div>
 
@@ -798,6 +950,7 @@ function Management() {
                 <thead>
                   <tr>
                     <th>Section</th>
+                    <th>Course</th>
                   </tr>
                 </thead>
 
@@ -808,12 +961,29 @@ function Management() {
                       section.section_id ??
                       section.sectionId;
 
+                    const sectionCourseId =
+                      section.course_id ??
+                      section.courseId;
+
+                    const course = courses.find(
+                      (item) =>
+                        String(item.id) ===
+                        String(sectionCourseId)
+                    );
+
                     return (
                       <tr key={sectionId}>
                         <td>
                           <strong>
                             {section.section_name}
                           </strong>
+                        </td>
+
+                        <td>
+                          {course
+                            ? `${course.course_code} - ${course.course_name}`
+                            : sectionCourseId ??
+                              "—"}
                         </td>
                       </tr>
                     );
@@ -832,7 +1002,9 @@ function Management() {
         <div className="management-card-header">
           <div>
             <h2>Enrollment</h2>
-            <p>Enroll a student into a section.</p>
+            <p>
+              Enroll a student into a section.
+            </p>
           </div>
         </div>
 
@@ -846,6 +1018,7 @@ function Management() {
 
               <input
                 type="number"
+                min="1"
                 value={studentId}
                 onChange={(e) =>
                   setStudentId(e.target.value)
@@ -905,7 +1078,9 @@ function Management() {
         <div className="management-card-header">
           <div>
             <h2>Teaching Staff</h2>
-            <p>Add lecturers and teaching assistants.</p>
+            <p>
+              Add lecturers and teaching assistants.
+            </p>
           </div>
         </div>
 
@@ -1043,14 +1218,15 @@ function Management() {
                   const file =
                     e.target.files[0] || null;
 
-                  console.log(
-                    "Selected CSV file:",
-                    file
-                  );
-
                   setCsvFile(file);
                 }}
               />
+
+              {csvFile && (
+                <span className="file-name">
+                  Selected: {csvFile.name}
+                </span>
+              )}
             </div>
 
             <div className="form-group">
@@ -1074,16 +1250,9 @@ function Management() {
 
               <select
                 value={importSectionId}
-                onChange={(e) => {
-                  const value = e.target.value;
-
-                  console.log(
-                    "Selected section value:",
-                    value
-                  );
-
-                  setImportSectionId(value);
-                }}
+                onChange={(e) =>
+                  setImportSectionId(e.target.value)
+                }
               >
                 <option value="">
                   No Section
@@ -1144,17 +1313,142 @@ function Management() {
           </div>
         )}
 
+        {/* =========================
+            IMPORT SUMMARY
+        ========================= */}
         {importResult && (
           <div className="import-result">
-            <h3>Import Result</h3>
+            <div className="import-result-header">
+              <h3>Import Result</h3>
 
-            <pre>
-              {JSON.stringify(
-                importResult,
-                null,
-                2
+              {rejectedRows.length > 0 && (
+                <button
+                  type="button"
+                  className="download-rejected-button"
+                  onClick={
+                    handleDownloadRejectedRows
+                  }
+                >
+                  Download Rejected Rows
+                </button>
               )}
-            </pre>
+            </div>
+
+            <div className="import-summary">
+              <div className="import-summary-item">
+                <span>Total</span>
+                <strong>
+                  {importResult.total ??
+                    importResult.total_rows ??
+                    importResult.totalRows ??
+                    "—"}
+                </strong>
+              </div>
+
+              <div className="import-summary-item success">
+                <span>Imported</span>
+                <strong>
+                  {importResult.imported ??
+                    importResult.imported_rows ??
+                    importResult.importedRows ??
+                    importResult.successful ??
+                    "—"}
+                </strong>
+              </div>
+
+              <div className="import-summary-item rejected">
+                <span>Rejected</span>
+                <strong>
+                  {rejectedRows.length}
+                </strong>
+              </div>
+            </div>
+
+            {/* =========================
+                Rejected Rows
+            ========================= */}
+            {rejectedRows.length > 0 && (
+              <div className="rejected-section">
+                <h4>Rejected Rows</h4>
+
+                <div className="management-table-wrapper">
+                  <table className="management-table rejected-table">
+                    <thead>
+                      <tr>
+                        <th>Row</th>
+                        <th>Student Code</th>
+                        <th>Student Name</th>
+                        <th>Email</th>
+                        <th>Reason</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {rejectedRows.map(
+                        (row, index) => {
+                          const data =
+                            row?.data || row;
+
+                          return (
+                            <tr
+                              key={
+                                row?.row ??
+                                row?.row_number ??
+                                index
+                              }
+                            >
+                              <td>
+                                {row?.row ??
+                                  row?.row_number ??
+                                  index + 1}
+                              </td>
+
+                              <td>
+                                {data?.student_code ??
+                                  "—"}
+                              </td>
+
+                              <td>
+                                {data?.student_name ??
+                                  "—"}
+                              </td>
+
+                              <td>
+                                {data?.email ?? "—"}
+                              </td>
+
+                              <td className="rejected-reason">
+                                {row?.reason ??
+                                  row?.error ??
+                                  row?.message ??
+                                  "Invalid row"}
+                              </td>
+                            </tr>
+                          );
+                        }
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* =========================
+                Raw Response
+            ========================= */}
+            <details className="raw-import-response">
+              <summary>
+                View raw import response
+              </summary>
+
+              <pre>
+                {JSON.stringify(
+                  importResult,
+                  null,
+                  2
+                )}
+              </pre>
+            </details>
           </div>
         )}
       </section>
