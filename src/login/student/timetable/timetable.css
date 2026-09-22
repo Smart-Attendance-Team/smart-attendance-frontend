@@ -1,0 +1,272 @@
+* {
+  box-sizing: border-box;
+}
+
+/* ================= CONTENT ================= */
+
+.dashboard-content {
+  padding: 32px;
+  max-width: 1600px;
+  margin: auto;
+}
+
+/* ================= PAGE HEADER ================= */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.page-small-title {
+  color: #4f46e5;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.page-description {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.week-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: right;
+}
+
+.week-box span {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.week-box strong {
+  font-size: 13px;
+}
+
+/* ================= SUMMARY ================= */
+
+.timetable-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.summary-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.summary-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.summary-icon.blue {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.summary-icon.green {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.summary-icon.orange {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.summary-card div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-card span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.summary-card strong {
+  font-size: 22px;
+}
+
+/* ================= TIMETABLE CARD ================= */
+
+.timetable-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  padding: 22px;
+}
+
+.table-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.table-header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.table-header p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.week-select {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 7px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #475569;
+}
+
+/* ================= TABLE ================= */
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.timetable-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+}
+
+.timetable-table th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  padding: 13px 15px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.timetable-table td {
+  padding: 17px 15px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 12px;
+}
+
+.timetable-table tbody tr {
+  transition: 0.2s;
+}
+
+.timetable-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.timetable-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ================= TABLE ELEMENTS ================= */
+
+.day-badge {
+  color: #475569;
+  font-weight: 600;
+}
+
+.course-name {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.lecturer-name {
+  color: #64748b;
+}
+
+.room-badge {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.time-text {
+  color: #475569;
+  white-space: nowrap;
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.type-badge.lecture {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.type-badge.lab {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1000px) {
+  .timetable-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .week-box {
+    text-align: left;
+  }
+}
+
+@media (max-width: 750px) {
+  .dashboard-content {
+    padding: 20px;
+  }
+
+  .timetable-card {
+    padding: 15px;
+  }
+}

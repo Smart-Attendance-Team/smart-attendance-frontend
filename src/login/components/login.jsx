@@ -2,6 +2,8 @@ import { useState } from "react";
 import api from "../../api/axios";
 import "./login.css";
 import LogoBUA from "../../Logo_BUA.jpeg";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -11,30 +13,29 @@ function Login() {
   const [passwordError, setPasswordError] = useState("");
   const [message, setMessage] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
+
+  const navigate = useNavigate();
+
   async function handleLogin(e) {
-    // Prevent the form from refreshing the page
     e.preventDefault();
 
-    // Clear old messages
     setEmailError("");
     setPasswordError("");
     setMessage("");
 
     let valid = true;
 
-    // Email validation
     if (email.trim() === "") {
       setEmailError("Email is required");
       valid = false;
     }
 
-    // Password validation
     if (password.trim() === "") {
       setPasswordError("Password is required");
       valid = false;
     }
 
-    // Stop if validation failed
     if (!valid) {
       return;
     }
@@ -48,92 +49,124 @@ function Login() {
       console.log("Token:", response.data.token);
       console.log("Role:", response.data.role);
 
-      setMessage("Login successful");
-    } catch (error) {
-  console.log("ERROR:", error);
-  console.log("RESPONSE:", error.response);
-  console.log("DATA:", error.response?.data);
+      // Save authentication data
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("role", response.data.role);
 
-  setMessage(
-    error.response?.data?.error ||
-    error.message ||
-    "Login failed"
-  );
-}
+      setMessage("Login successful");
+
+      // Navigate based on user role
+      if (response.data.role === "student") {
+        navigate("/home");
+      } else if (
+        response.data.role === "lecturer" ||
+        response.data.role === "ta"
+      ) {
+        navigate("/lecturer");
+      } else if (response.data.role === "admin") {
+        navigate("/admin");
+      } else if (response.data.role === "auditor") {
+        navigate("/auditor");
+      } else {
+        setMessage("Unknown user role");
+      }
+
+    } catch (error) {
+      console.log("ERROR:", error);
+      console.log("RESPONSE:", error.response);
+      console.log("DATA:", error.response?.data);
+
+      setMessage(
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "Login failed"
+      );
+    }
   }
 
   return (
-  <div className="login-container">
-    <img src={LogoBUA} alt="BUA Logo" />
+    <div className="login-container">
+      <img src={LogoBUA} alt="BUA Logo" />
 
-    <form onSubmit={handleLogin}>
-      <div className="form-group">
-        <label htmlFor="exampleInputEmail1">
-          Email address
-        </label>
+      <h2 className="sign-in">
+        Sign in to your account
+      </h2>
 
-        <input
-          type="email"
-          className="form-control"
-          id="exampleInputEmail1"
-          aria-describedby="emailHelp"
-          placeholder="Enter email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+      <p className="sign-in-p">
+        Sign in to access your attendence profile and services
+      </p>
 
-        {emailError && (
-          <p>{emailError}</p>
+      <form onSubmit={handleLogin}>
+
+        <div>
+          <label htmlFor="email">
+            Email Address
+          </label>
+
+          <input
+            type="email"
+            id="email"
+            placeholder="admin@test.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          {emailError && (
+            <p className="error-meg">
+              {emailError}
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label htmlFor="password">
+            Password
+          </label>
+
+          <div className="password-container">
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              placeholder="Password:Admin@123"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            <span
+              className="password-eye"
+              onClick={() =>
+                setShowPassword(!showPassword)
+              }
+            >
+              {showPassword ? (
+                <FaEyeSlash />
+              ) : (
+                <FaEye />
+              )}
+            </span>
+          </div>
+
+          {passwordError && (
+            <p className="error-meg">
+              {passwordError}
+            </p>
+          )}
+        </div>
+
+        <button type="submit">
+          Sign in
+        </button>
+
+        {message && (
+          <p className="error-meg">
+            {message}
+          </p>
         )}
-      </div>
 
-      <div className="form-group">
-        <label htmlFor="exampleInputPassword1">
-          Password
-        </label>
-
-        <input
-          type="password"
-          className="form-control"
-          id="exampleInputPassword1"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        {passwordError && (
-          <p>{passwordError}</p>
-        )}
-      </div>
-
-      <div className="form-check">
-        <input
-          type="checkbox"
-          className="form-check-input"
-          id="exampleCheck1"
-        />
-
-        <label
-          className="form-check-label"
-          htmlFor="exampleCheck1"
-        >
-          Check me out
-        </label>
-      </div>
-
-      <button
-        type="submit"
-        className="btn-btn-primary"
-      >
-        Submit
-      </button>
-
-      {message && (
-        <p>{message}</p>
-      )}
-    </form>
-  </div>
-);
+      </form>
+    </div>
+  );
 }
 
 export default Login;

@@ -1,0 +1,393 @@
+.auditor-dashboard {
+  min-height: 100vh;
+
+  display: flex;
+
+  background: #f6f8fc;
+
+  color: #25283b;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.auditor-sidebar {
+  width: 250px;
+
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  box-sizing: border-box;
+
+  padding: 22px 16px;
+
+  background: #ffffff;
+
+  border-right: 1px solid #e8ebf0;
+
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   SIDEBAR LOGO
+========================================================= */
+
+.auditor-sidebar-logo {
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 4px 8px 25px;
+}
+
+.auditor-logo-icon {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #6b6fe5;
+
+  border-radius: 10px;
+
+  color: #ffffff;
+
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.auditor-sidebar-logo h2 {
+  margin: 0;
+
+  color: #292d3d;
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.auditor-sidebar-logo span {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #9aa1ad;
+
+  font-size: 9px;
+}
+
+/* =========================================================
+   SIDEBAR NAV
+========================================================= */
+
+.auditor-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.auditor-nav-item {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  box-sizing: border-box;
+
+  padding: 11px 12px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #747c89;
+
+  font-family: inherit;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.auditor-nav-item > span:first-child {
+  width: 20px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  font-size: 15px;
+}
+
+.auditor-nav-item:hover {
+  background: #f5f6ff;
+
+  color: #6267d8;
+}
+
+.auditor-nav-item.active {
+  background: #eeeffd;
+
+  color: #6267d8;
+
+  font-weight: 600;
+}
+
+/* =========================================================
+   SIDEBAR BOTTOM
+========================================================= */
+
+.auditor-sidebar-bottom {
+  margin-top: auto;
+
+  padding-top: 20px;
+
+  border-top: 1px solid #eef0f4;
+}
+
+.auditor-logout-button {
+  color: #858c98;
+}
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.auditor-main {
+  min-width: 0;
+
+  flex: 1;
+
+  min-height: 100vh;
+}
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.auditor-topbar {
+  height: 76px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  box-sizing: border-box;
+
+  padding: 0 32px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e8ebf0;
+}
+
+/* =========================================================
+   BREADCRUMB
+========================================================= */
+
+.auditor-breadcrumb {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  font-size: 12px;
+}
+
+.auditor-breadcrumb-link {
+  color: #8b93a1;
+}
+
+.auditor-breadcrumb-separator {
+  color: #b2b7c0;
+
+  font-size: 15px;
+}
+
+.auditor-breadcrumb-current {
+  color: #3f4553;
+
+  font-weight: 600;
+}
+
+/* =========================================================
+   TOPBAR RIGHT
+========================================================= */
+
+.auditor-topbar-right {
+  display: flex;
+
+  align-items: center;
+
+  gap: 18px;
+}
+
+.auditor-notification-button {
+  position: relative;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  font-size: 16px;
+
+  cursor: pointer;
+}
+
+.auditor-notification-dot {
+  position: absolute;
+
+  top: 5px;
+  right: 5px;
+
+  width: 6px;
+  height: 6px;
+
+  background: #6b6fe5;
+
+  border: 2px solid #ffffff;
+
+  border-radius: 50%;
+}
+
+/* =========================================================
+   USER
+========================================================= */
+
+.auditor-user-mini {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+}
+
+.auditor-user-avatar {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #eeeffd;
+
+  border-radius: 50%;
+
+  color: #6267d8;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.auditor-user-mini-info {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.auditor-user-name {
+  color: #3f4553;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.auditor-user-role {
+  color: #9aa1ad;
+
+  font-size: 9px;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 800px) {
+  .auditor-sidebar {
+    width: 220px;
+  }
+
+  .auditor-topbar {
+    padding: 0 25px;
+  }
+}
+
+@media (max-width: 650px) {
+  .auditor-sidebar {
+    width: 70px;
+
+    padding: 18px 10px;
+  }
+
+  .auditor-sidebar-logo {
+    justify-content: center;
+
+    padding: 4px 0 25px;
+  }
+
+  .auditor-sidebar-logo > div:last-child {
+    display: none;
+  }
+
+  .auditor-nav-item {
+    justify-content: center;
+
+    padding: 11px 8px;
+  }
+
+  .auditor-nav-item > span:last-child {
+    display: none;
+  }
+
+  .auditor-nav-item > span:first-child {
+    width: auto;
+  }
+
+  .auditor-topbar {
+    height: 68px;
+
+    padding: 0 18px;
+  }
+
+  .auditor-user-mini-info {
+    display: none;
+  }
+}

@@ -1,0 +1,337 @@
+* {
+  box-sizing: border-box;
+}
+
+.lecturer-dashboard {
+  min-height: 100vh;
+  display: flex;
+  background: #f6f8fc;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar {
+  width: 250px;
+  min-height: 100vh;
+  flex-shrink: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 24px 16px;
+
+  background: #ffffff;
+  border-right: 1px solid #e7e9f0;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 4px 10px 28px;
+}
+
+.logo-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #5b5ce2;
+  color: #ffffff;
+
+  border-radius: 12px;
+
+  font-size: 20px;
+  font-weight: 700;
+
+  flex-shrink: 0;
+}
+
+.sidebar-logo h2 {
+  margin: 0;
+
+  font-size: 17px;
+  color: #25283b;
+}
+
+.sidebar-logo span {
+  display: block;
+
+  margin-top: 2px;
+
+  font-size: 11px;
+  color: #969aae;
+}
+
+/* ================= NAV ================= */
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.nav-item {
+  width: 100%;
+  min-height: 46px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 0 13px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: transparent;
+
+  color: #71758a;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.nav-item > span:first-child {
+  width: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  font-size: 16px;
+}
+
+.nav-item:hover {
+  background: #f5f6fb;
+  color: #4f51c8;
+}
+
+.nav-item.active {
+  background: #eeefff;
+  color: #5758d9;
+
+  font-weight: 600;
+}
+
+/* ================= BOTTOM ================= */
+
+.sidebar-bottom {
+  margin-top: auto;
+
+  padding-top: 20px;
+
+  border-top: 1px solid #eceef4;
+}
+
+.logout-button {
+  color: #71758a;
+}
+
+.logout-button:hover {
+  color: #e05252;
+  background: #fff4f4;
+}
+
+/* ================= MAIN ================= */
+
+.dashboard-main {
+  flex: 1;
+
+  min-width: 0;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* ================= TOPBAR ================= */
+
+.topbar {
+  height: 76px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 32px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e7e9f0;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  font-size: 14px;
+}
+
+.breadcrumb-link {
+  color: #8b8fa3;
+}
+
+.breadcrumb-separator {
+  color: #b6b9c7;
+}
+
+.breadcrumb-current {
+  color: #33364b;
+
+  font-weight: 600;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+
+  gap: 22px;
+}
+
+.notification-button {
+  position: relative;
+
+  width: 38px;
+  height: 38px;
+
+  border: 0;
+
+  background: transparent;
+
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  font-size: 18px;
+}
+
+.notification-button:hover {
+  background: #f5f6fb;
+}
+
+.notification-dot {
+  position: absolute;
+
+  top: 7px;
+  right: 7px;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #ef5350;
+
+  border: 2px solid #ffffff;
+}
+
+.user-mini {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #eeefff;
+  color: #5758d9;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.user-mini-info {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.user-name {
+  color: #33364b;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.user-role {
+  color: #969aae;
+
+  font-size: 11px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 800px) {
+  .sidebar {
+    width: 210px;
+  }
+
+  .topbar {
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 650px) {
+  .sidebar {
+    width: 70px;
+
+    padding: 20px 10px;
+  }
+
+  .sidebar-logo {
+    justify-content: center;
+
+    padding: 4px 0 28px;
+  }
+
+  .sidebar-logo > div:last-child,
+  .nav-item > span:last-child {
+    display: none;
+  }
+
+  .nav-item {
+    justify-content: center;
+
+    padding: 0;
+  }
+
+  .topbar {
+    padding: 0 14px;
+  }
+
+  .user-mini-info {
+    display: none;
+  }
+}
