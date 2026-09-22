@@ -16,9 +16,16 @@ function ShowQR() {
     "lecturerActiveSession"
   );
 
-  const savedSessionData = savedSession
-    ? JSON.parse(savedSession)
-    : null;
+  let savedSessionData = null;
+
+  if (savedSession) {
+    try {
+      savedSessionData = JSON.parse(savedSession);
+    } catch (error) {
+      console.log("Invalid saved session:", error);
+      localStorage.removeItem("lecturerActiveSession");
+    }
+  }
 
   const sessionId =
     location.state?.sessionId ||
@@ -30,54 +37,25 @@ function ShowQR() {
   // =====================================================
 
   const [qrToken, setQrToken] = useState("");
-
   const [loading, setLoading] = useState(true);
-
   const [message, setMessage] = useState("");
-
   const [countdown, setCountdown] = useState(0);
+
+  // =====================================================
+  // SESSION / SLOT
+  // =====================================================
+
+  const [sessionSlot, setSessionSlot] = useState(null);
+
+  const [sessionLoading, setSessionLoading] = useState(true);
 
   // =====================================================
   // ROSTER
   // =====================================================
 
-  const [roster, setRoster] = useState([
-    {
-      attendance_id: 1,
-      student_name: "Ahmed Mohamed",
-      student_code: "20230101",
-      attendance_status: "present",
-      minutes_late: 0,
-    },
-    {
-      attendance_id: 2,
-      student_name: "Sara Ahmed",
-      student_code: "20230115",
-      attendance_status: "present",
-      minutes_late: 0,
-    },
-    {
-      attendance_id: 3,
-      student_name: "Omar Khaled",
-      student_code: "20230128",
-      attendance_status: "late",
-      minutes_late: 8,
-    },
-    {
-      attendance_id: 4,
-      student_name: "Mariam Ali",
-      student_code: "20230204",
-      attendance_status: "absent",
-      minutes_late: 0,
-    },
-    {
-      attendance_id: 5,
-      student_name: "Youssef Hassan",
-      student_code: "20230217",
-      attendance_status: "present",
-      minutes_late: 0,
-    },
-  ]);
+  const [roster, setRoster] = useState([]);
+
+  const [rosterLoading, setRosterLoading] = useState(true);
 
   // =====================================================
   // EDIT ATTENDANCE
@@ -89,11 +67,107 @@ function ShowQR() {
 
   const [reason, setReason] = useState("");
 
+  const [updatingAttendance, setUpdatingAttendance] =
+    useState(false);
+
   // =====================================================
   // CLOSE SESSION
   // =====================================================
 
   const [closing, setClosing] = useState(false);
+
+  // =====================================================
+  // GET MY SLOTS
+  // =====================================================
+
+  async function getSessionSlot() {
+    if (!sessionId) {
+      setSessionLoading(false);
+      return;
+    }
+
+    try {
+      setSessionLoading(true);
+
+      const response = await api.get("/sessions/my-slots");
+
+      console.log("My slots for Show QR:", response.data);
+
+      const savedSlotId = savedSessionData?.slotId;
+
+      const matchingSlot = response.data.find(
+        (slot) =>
+          String(slot.slot_id) === String(savedSlotId)
+      );
+
+      if (matchingSlot) {
+        setSessionSlot(matchingSlot);
+      } else {
+        console.log(
+          "No matching slot found for session:",
+          sessionId
+        );
+      }
+    } catch (error) {
+      console.log("Session slot error:", error);
+      console.log("Response:", error.response);
+      console.log("Data:", error.response?.data);
+
+      setMessage(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to load session information."
+      );
+    } finally {
+      setSessionLoading(false);
+    }
+  }
+
+  // =====================================================
+  // GET ROSTER
+  // =====================================================
+
+  async function getRoster() {
+    if (!sessionId) {
+      setRosterLoading(false);
+      return;
+    }
+
+    try {
+      setRosterLoading(true);
+
+      const response = await api.get(
+        `/sessions/${sessionId}/roster`
+      );
+
+      console.log("Roster response:", response.data);
+
+      /*
+        Backend may return the roster directly as an array
+        or inside a roster property.
+      */
+
+      const rosterData = Array.isArray(response.data)
+        ? response.data
+        : response.data?.roster || [];
+
+      setRoster(rosterData);
+    } catch (error) {
+      console.log("Roster error:", error);
+      console.log("Response:", error.response);
+      console.log("Data:", error.response?.data);
+
+      setMessage(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to load attendance roster."
+      );
+
+      setRoster([]);
+    } finally {
+      setRosterLoading(false);
+    }
+  }
 
   // =====================================================
   // GET QR TOKEN
@@ -117,7 +191,9 @@ function ShowQR() {
 
       setQrToken(response.data.token);
 
-      setCountdown(response.data.expires_in_seconds);
+      setCountdown(
+        response.data.expires_in_seconds
+      );
 
       setMessage("");
     } catch (error) {
@@ -130,16 +206,20 @@ function ShowQR() {
           error.response?.data?.message ||
           "Failed to generate QR code."
       );
+
+      setQrToken("");
     } finally {
       setLoading(false);
     }
   }
 
   // =====================================================
-  // GET FIRST QR
+  // INITIAL DATA
   // =====================================================
 
   useEffect(() => {
+    getSessionSlot();
+    getRoster();
     getQRToken();
   }, [sessionId]);
 
@@ -213,11 +293,10 @@ function ShowQR() {
   }
 
   // =====================================================
-  // UPDATE ATTENDANCE
-  // TEMPORARY MOCK
+  // UPDATE ATTENDANCE - BACKEND
   // =====================================================
 
-  function updateAttendance(attendanceId) {
+  async function updateAttendance(attendanceId) {
     if (!selectedStatus) {
       setMessage("Please select a status.");
       return;
@@ -228,24 +307,46 @@ function ShowQR() {
       return;
     }
 
-    setRoster((previousRoster) =>
-      previousRoster.map((student) =>
-        student.attendance_id === attendanceId
-          ? {
-              ...student,
-              attendance_status: selectedStatus,
-            }
-          : student
-      )
-    );
-
-    setMessage("Attendance updated successfully.");
-
-    cancelEdit();
-
-    setTimeout(() => {
+    try {
+      setUpdatingAttendance(true);
       setMessage("");
-    }, 2500);
+
+      const response = await api.patch(
+        `/sessions/${sessionId}/attendance/${attendanceId}`,
+        {
+          status: selectedStatus,
+          reason: reason.trim(),
+        }
+      );
+
+      console.log(
+        "Attendance update response:",
+        response.data
+      );
+
+      // Reload roster from backend
+      await getRoster();
+
+      setMessage("Attendance updated successfully.");
+
+      cancelEdit();
+
+      setTimeout(() => {
+        setMessage("");
+      }, 2500);
+    } catch (error) {
+      console.log("Attendance update error:", error);
+      console.log("Response:", error.response);
+      console.log("Data:", error.response?.data);
+
+      setMessage(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to update attendance."
+      );
+    } finally {
+      setUpdatingAttendance(false);
+    }
   }
 
   // =====================================================
@@ -274,12 +375,18 @@ function ShowQR() {
         `/sessions/${sessionId}/close`
       );
 
-      console.log("Close session response:", response.data);
+      console.log(
+        "Close session response:",
+        response.data
+      );
 
-      // Remove local active session
-      localStorage.removeItem("lecturerActiveSession");
+      localStorage.removeItem(
+        "lecturerActiveSession"
+      );
 
-      setMessage("Attendance session closed successfully.");
+      setMessage(
+        "Attendance session closed successfully."
+      );
 
       setTimeout(() => {
         navigate("/lecturer");
@@ -304,15 +411,23 @@ function ShowQR() {
   // =====================================================
 
   const presentCount = roster.filter(
-    (student) => student.attendance_status === "present"
+    (student) =>
+      student.attendance_status === "present"
   ).length;
 
   const lateCount = roster.filter(
-    (student) => student.attendance_status === "late"
+    (student) =>
+      student.attendance_status === "late"
   ).length;
 
   const absentCount = roster.filter(
-    (student) => student.attendance_status === "absent"
+    (student) =>
+      student.attendance_status === "absent"
+  ).length;
+
+  const excusedCount = roster.filter(
+    (student) =>
+      student.attendance_status === "excused"
   ).length;
 
   const totalStudents = roster.length;
@@ -380,11 +495,15 @@ function ShowQR() {
           <span>COURSE</span>
 
           <strong>
-            Database
+            {sessionLoading
+              ? "Loading..."
+              : sessionSlot?.course_name || "—"}
           </strong>
 
           <small>
-            CS301 · Section A
+            {sessionSlot?.course_code || "—"}
+            {" · "}
+            {sessionSlot?.section_name || "—"}
           </small>
 
         </div>
@@ -394,7 +513,7 @@ function ShowQR() {
           <span>ROOM</span>
 
           <strong>
-            Lab 1
+            {sessionSlot?.room_name || "—"}
           </strong>
 
           <small>
@@ -408,11 +527,13 @@ function ShowQR() {
           <span>TIME</span>
 
           <strong>
-            10:00 AM - 12:00 PM
+            {sessionSlot?.start_time || "—"}
+            {" - "}
+            {sessionSlot?.end_time || "—"}
           </strong>
 
           <small>
-            Saturday
+            {sessionSlot?.day_of_week || "—"}
           </small>
 
         </div>
@@ -422,7 +543,9 @@ function ShowQR() {
           <span>STUDENTS</span>
 
           <strong>
-            {totalStudents}
+            {rosterLoading
+              ? "..."
+              : totalStudents}
           </strong>
 
           <small>
@@ -499,15 +622,7 @@ function ShowQR() {
                 style={{
                   width: `${
                     countdown > 0
-                      ? Math.min(
-                          (countdown /
-                            Math.max(
-                              countdown,
-                              1
-                            )) *
-                            100,
-                          100
-                        )
+                      ? (countdown / 20) * 100
                       : 0
                   }%`,
                 }}
@@ -682,182 +797,213 @@ function ShowQR() {
 
         <div className="table-wrapper">
 
-          <table className="roster-table">
+          {rosterLoading ? (
+            <div className="qr-loading">
+              Loading roster...
+            </div>
+          ) : roster.length === 0 ? (
+            <div className="qr-loading">
+              No students found for this session.
+            </div>
+          ) : (
+            <table className="roster-table">
 
-            <thead>
+              <thead>
 
-              <tr>
-                <th>Student</th>
-                <th>Student Code</th>
-                <th>Status</th>
-                <th>Minutes Late</th>
-                <th>Action</th>
-              </tr>
+                <tr>
+                  <th>Student</th>
+                  <th>Student Code</th>
+                  <th>Status</th>
+                  <th>Minutes Late</th>
+                  <th>Action</th>
+                </tr>
 
-            </thead>
+              </thead>
 
-            <tbody>
+              <tbody>
 
-              {roster.map((student) => {
+                {roster.map((student) => {
 
-                const attendanceId =
-                  student.attendance_id;
+                  const attendanceId =
+                    student.attendance_id;
 
-                const status =
-                  student.attendance_status;
+                  const status =
+                    student.attendance_status;
 
-                return (
-                  <tr key={attendanceId}>
+                  return (
+                    <tr key={attendanceId}>
 
-                    <td>
+                      <td>
 
-                      <div className="student-cell">
+                        <div className="student-cell">
 
-                        <div className="student-avatar">
+                          <div className="student-avatar">
 
-                          {student.student_name
-                            .split(" ")
-                            .map(
-                              (word) => word[0]
-                            )
-                            .slice(0, 2)
-                            .join("")}
-
-                        </div>
-
-                        <strong>
-                          {student.student_name}
-                        </strong>
-
-                      </div>
-
-                    </td>
-
-                    <td>
-
-                      <span className="student-code">
-                        {student.student_code}
-                      </span>
-
-                    </td>
-
-                    <td>
-
-                      <span
-                        className={getStatusClass(
-                          status
-                        )}
-                      >
-                        {status.charAt(0).toUpperCase() +
-                          status.slice(1)}
-                      </span>
-
-                    </td>
-
-                    <td>
-
-                      {student.minutes_late > 0
-                        ? `${student.minutes_late} min`
-                        : "—"}
-
-                    </td>
-
-                    <td>
-
-                      {editingId ===
-                      attendanceId ? (
-
-                        <div className="edit-attendance">
-
-                          <select
-                            value={
-                              selectedStatus
-                            }
-                            onChange={(e) =>
-                              setSelectedStatus(
-                                e.target.value
+                            {(student.student_name ||
+                              "Student")
+                              .split(" ")
+                              .map(
+                                (word) => word[0]
                               )
-                            }
-                          >
-
-                            <option value="present">
-                              Present
-                            </option>
-
-                            <option value="absent">
-                              Absent
-                            </option>
-
-                            <option value="late">
-                              Late
-                            </option>
-
-                            <option value="excused">
-                              Excused
-                            </option>
-
-                          </select>
-
-                          <input
-                            type="text"
-                            placeholder="Reason"
-                            value={reason}
-                            onChange={(e) =>
-                              setReason(
-                                e.target.value
-                              )
-                            }
-                          />
-
-                          <div className="edit-actions">
-
-                            <button
-                              className="save-button"
-                              onClick={() =>
-                                updateAttendance(
-                                  attendanceId
-                                )
-                              }
-                            >
-                              Save
-                            </button>
-
-                            <button
-                              className="cancel-button"
-                              onClick={cancelEdit}
-                            >
-                              Cancel
-                            </button>
+                              .slice(0, 2)
+                              .join("")}
 
                           </div>
 
+                          <strong>
+                            {student.student_name ||
+                              "Unknown Student"}
+                          </strong>
+
                         </div>
 
-                      ) : (
+                      </td>
 
-                        <button
-                          className="edit-button"
-                          onClick={() =>
-                            startEdit(
-                              attendanceId,
-                              status
-                            )
-                          }
+                      <td>
+
+                        <span className="student-code">
+                          {student.student_code ||
+                            "—"}
+                        </span>
+
+                      </td>
+
+                      <td>
+
+                        <span
+                          className={getStatusClass(
+                            status
+                          )}
                         >
-                          Edit
-                        </button>
+                          {status
+                            ? status
+                                .charAt(0)
+                                .toUpperCase() +
+                              status.slice(1)
+                            : "—"}
+                        </span>
 
-                      )}
+                      </td>
 
-                    </td>
+                      <td>
 
-                  </tr>
-                );
-              })}
+                        {student.minutes_late > 0
+                          ? `${student.minutes_late} min`
+                          : "—"}
 
-            </tbody>
+                      </td>
 
-          </table>
+                      <td>
+
+                        {editingId ===
+                        attendanceId ? (
+
+                          <div className="edit-attendance">
+
+                            <select
+                              value={
+                                selectedStatus
+                              }
+                              onChange={(e) =>
+                                setSelectedStatus(
+                                  e.target.value
+                                )
+                              }
+                              disabled={
+                                updatingAttendance
+                              }
+                            >
+
+                              <option value="present">
+                                Present
+                              </option>
+
+                              <option value="absent">
+                                Absent
+                              </option>
+
+                              <option value="late">
+                                Late
+                              </option>
+
+                              <option value="excused">
+                                Excused
+                              </option>
+
+                            </select>
+
+                            <input
+                              type="text"
+                              placeholder="Reason"
+                              value={reason}
+                              onChange={(e) =>
+                                setReason(
+                                  e.target.value
+                                )
+                              }
+                              disabled={
+                                updatingAttendance
+                              }
+                            />
+
+                            <div className="edit-actions">
+
+                              <button
+                                className="save-button"
+                                onClick={() =>
+                                  updateAttendance(
+                                    attendanceId
+                                  )
+                                }
+                                disabled={
+                                  updatingAttendance
+                                }
+                              >
+                                {updatingAttendance
+                                  ? "Saving..."
+                                  : "Save"}
+                              </button>
+
+                              <button
+                                className="cancel-button"
+                                onClick={cancelEdit}
+                                disabled={
+                                  updatingAttendance
+                                }
+                              >
+                                Cancel
+                              </button>
+
+                            </div>
+
+                          </div>
+
+                        ) : (
+
+                          <button
+                            className="edit-button"
+                            onClick={() =>
+                              startEdit(
+                                attendanceId,
+                                status
+                              )
+                            }
+                          >
+                            Edit
+                          </button>
+
+                        )}
+
+                      </td>
+
+                    </tr>
+                  );
+                })}
+
+              </tbody>
+
+            </table>
+          )}
 
         </div>
 

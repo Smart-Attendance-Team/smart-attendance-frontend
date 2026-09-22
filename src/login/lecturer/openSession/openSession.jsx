@@ -9,17 +9,29 @@ function OpenSession() {
   // ================= SLOTS =================
 
   const [slots, setSlots] = useState([]);
-
   const [selectedSlot, setSelectedSlot] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   // ================= ACTIVE SESSION =================
 
   const [activeSession, setActiveSession] = useState(() => {
-    const savedSession = localStorage.getItem("lecturerActiveSession");
+    const savedSession = localStorage.getItem(
+      "lecturerActiveSession"
+    );
 
-    return savedSession ? JSON.parse(savedSession) : null;
+    if (!savedSession) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(savedSession);
+    } catch (error) {
+      console.log("Invalid saved session:", error);
+      localStorage.removeItem("lecturerActiveSession");
+      return null;
+    }
   });
 
   // =====================================================
@@ -32,7 +44,56 @@ function OpenSession() {
 
       console.log("My slots:", response.data);
 
-      setSlots(response.data);
+      const slotsData = response.data || [];
+
+      setSlots(slotsData);
+
+      // =================================================
+      // FIND ACTIVE SESSION FROM BACKEND
+      // =================================================
+
+      const openedSlot = slotsData.find(
+        (slot) =>
+          slot.session_id &&
+          (
+            slot.session_status === "open" ||
+            slot.session_status === "active"
+          )
+      );
+
+      if (openedSlot) {
+        const sessionData = {
+          sessionId: openedSlot.session_id,
+          slotId: openedSlot.slot_id,
+          startedAt: openedSlot.opened_at || null,
+          sessionDate: openedSlot.session_date || null,
+          status: openedSlot.session_status,
+          rosterCount: openedSlot.roster_count || 0,
+        };
+
+        console.log(
+          "Active session found from backend:",
+          sessionData
+        );
+
+        localStorage.setItem(
+          "lecturerActiveSession",
+          JSON.stringify(sessionData)
+        );
+
+        setActiveSession(sessionData);
+
+        // Select the active slot automatically
+        setSelectedSlot(String(openedSlot.slot_id));
+      } else {
+        console.log("No active session found from backend.");
+
+        // لو الـBackend بيقول مفيش Session مفتوحة،
+        // نمسح الـSession القديمة من localStorage
+        localStorage.removeItem("lecturerActiveSession");
+
+        setActiveSession(null);
+      }
     } catch (error) {
       console.log("My slots error:", error);
       console.log("Response:", error.response);
@@ -72,19 +133,11 @@ function OpenSession() {
     setLoading(true);
 
     try {
-      // ===================================================
-      // OPEN SESSION - BACKEND
-      // ===================================================
-
       const response = await api.post("/sessions/open", {
         slot_id: Number(selectedSlot),
       });
 
       console.log("Open session response:", response.data);
-
-      // ===================================================
-      // SAVE SESSION DATA
-      // ===================================================
 
       const sessionData = {
         sessionId: response.data.session_id,
@@ -97,10 +150,6 @@ function OpenSession() {
 
       console.log("Session data:", sessionData);
 
-      // ===================================================
-      // SAVE ACTIVE SESSION
-      // ===================================================
-
       localStorage.setItem(
         "lecturerActiveSession",
         JSON.stringify(sessionData)
@@ -110,9 +159,9 @@ function OpenSession() {
 
       setMessage("Attendance session opened successfully.");
 
-      // ===================================================
+      // =================================================
       // GO TO QR PAGE
-      // ===================================================
+      // =================================================
 
       navigate("/lecturer/showqr", {
         state: {
@@ -138,10 +187,10 @@ function OpenSession() {
   // CLOSE SESSION
   // =====================================================
 
-  function handleCloseSession() {
+  async function handleCloseSession() {
     setMessage("");
 
-    if (!activeSession) {
+    if (!activeSession?.sessionId) {
       setMessage("There is no active attendance session.");
       return;
     }
@@ -154,15 +203,45 @@ function OpenSession() {
       return;
     }
 
-    // ===================================================
-    // TEMPORARY MOCK VERSION
-    // ===================================================
+    setClosing(true);
 
-    localStorage.removeItem("lecturerActiveSession");
+    try {
+      console.log(
+        "Closing session:",
+        activeSession.sessionId
+      );
 
-    setActiveSession(null);
+      const response = await api.post(
+        `/sessions/${activeSession.sessionId}/close`
+      );
 
-    setMessage("Attendance session closed successfully.");
+      console.log("Close session response:", response.data);
+
+      // Remove local active session
+      localStorage.removeItem("lecturerActiveSession");
+
+      setActiveSession(null);
+      setSelectedSlot("");
+
+      setMessage(
+        "Attendance session closed successfully."
+      );
+
+      // Refresh slots so backend state appears immediately
+      await getMySlots();
+    } catch (error) {
+      console.log("Close session error:", error);
+      console.log("Response:", error.response);
+      console.log("Data:", error.response?.data);
+
+      setMessage(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to close attendance session."
+      );
+    } finally {
+      setClosing(false);
+    }
   }
 
   // =====================================================
@@ -170,15 +249,25 @@ function OpenSession() {
   // =====================================================
 
   const selectedSlotData = slots.find(
-    (slot) => String(slot.slot_id) === String(selectedSlot)
+    (slot) =>
+      String(slot.slot_id) === String(selectedSlot)
   );
 
   const activeSlotData = activeSession
     ? slots.find(
         (slot) =>
-          String(slot.slot_id) === String(activeSession.slotId)
+          String(slot.slot_id) ===
+          String(activeSession.slotId)
       )
     : null;
+
+  // =====================================================
+  // REVIEW CORRECTIONS
+  // =====================================================
+
+  function handleReviewRequests() {
+    navigate("/lecturer/corrections");
+  }
 
   return (
     <section className="dashboard-content">
@@ -193,8 +282,8 @@ function OpenSession() {
         <h1>Open Attendance Session</h1>
 
         <p className="page-description">
-          Select a scheduled class to open an attendance session for
-          students.
+          Select a scheduled class to open an attendance session
+          for students.
         </p>
       </div>
 
@@ -232,7 +321,9 @@ function OpenSession() {
             <button
               type="button"
               className="view-roster-button"
-              onClick={() => navigate("/lecturer/roster")}
+              onClick={() =>
+                navigate("/lecturer/roster")
+              }
             >
               View Live Roster
             </button>
@@ -241,8 +332,11 @@ function OpenSession() {
               type="button"
               className="close-session-button"
               onClick={handleCloseSession}
+              disabled={closing}
             >
-              Close Session
+              {closing
+                ? "Closing Session..."
+                : "Close Session"}
             </button>
 
           </div>
@@ -411,7 +505,9 @@ function OpenSession() {
             <button
               className="open-session-button"
               type="submit"
-              disabled={loading || Boolean(activeSession)}
+              disabled={
+                loading || Boolean(activeSession)
+              }
             >
 
               {loading ? (
@@ -456,7 +552,6 @@ function OpenSession() {
             </div>
 
             <div>
-
               <strong>
                 Select your class
               </strong>
@@ -464,7 +559,6 @@ function OpenSession() {
               <p>
                 Choose a scheduled teaching slot from the list.
               </p>
-
             </div>
 
           </div>
@@ -476,7 +570,6 @@ function OpenSession() {
             </div>
 
             <div>
-
               <strong>
                 Open the session
               </strong>
@@ -484,7 +577,6 @@ function OpenSession() {
               <p>
                 Start the attendance session for the selected class.
               </p>
-
             </div>
 
           </div>
@@ -496,7 +588,6 @@ function OpenSession() {
             </div>
 
             <div>
-
               <strong>
                 Display the QR code
               </strong>
@@ -504,7 +595,6 @@ function OpenSession() {
               <p>
                 Students scan the rotating QR code to record attendance.
               </p>
-
             </div>
 
           </div>
@@ -516,7 +606,6 @@ function OpenSession() {
             </div>
 
             <div>
-
               <strong>
                 Close the session
               </strong>
@@ -525,7 +614,6 @@ function OpenSession() {
                 Review the attendance roster and close the session when
                 the class is finished.
               </p>
-
             </div>
 
           </div>
@@ -596,7 +684,6 @@ function OpenSession() {
             <table className="sessions-table">
 
               <thead>
-
                 <tr>
                   <th>Course</th>
                   <th>Section</th>
@@ -605,7 +692,6 @@ function OpenSession() {
                   <th>Time</th>
                   <th>Status</th>
                 </tr>
-
               </thead>
 
               <tbody>
@@ -723,16 +809,10 @@ function OpenSession() {
 
         <button
           type="button"
-          onClick={() =>
-            navigate("/lecturer/corrections")
-          }
+          onClick={handleReviewRequests}
         >
           Review Requests
-
-          <span>
-            →
-          </span>
-
+          <span>→</span>
         </button>
 
       </div>

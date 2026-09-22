@@ -11,15 +11,12 @@ function AuditorDashboard() {
       ========================= */}
       <div className="auditor-page-header">
         <div>
-          <span className="auditor-small-title">
-            AUDIT
-          </span>
+          <span className="auditor-small-title">AUDIT</span>
 
           <h1>Auditor Dashboard</h1>
 
           <p>
-            Welcome Auditor. Review and monitor system
-            activity.
+            Review and monitor recorded system activity and audit events.
           </p>
         </div>
       </div>
@@ -30,11 +27,15 @@ function AuditorDashboard() {
       <section className="auditor-overview">
         <div className="auditor-overview-header">
           <div>
-            <h2>Audit Overview</h2>
+            <span className="auditor-section-label">
+              AUDIT OVERVIEW
+            </span>
+
+            <h2>System Activity</h2>
 
             <p>
-              Monitor recorded system activity and
-              review audit history.
+              Monitor recorded actions and changes performed across the
+              attendance system.
             </p>
           </div>
         </div>
@@ -45,11 +46,15 @@ function AuditorDashboard() {
           </div>
 
           <div className="auditor-action-info">
+            <span className="auditor-action-label">
+              AUDIT LOG
+            </span>
+
             <h3>Audit History</h3>
 
             <p>
-              View all recorded actions and changes in
-              the system.
+              View recorded actions, users, entities, and timestamps from
+              the system audit log.
             </p>
           </div>
 
@@ -59,6 +64,7 @@ function AuditorDashboard() {
             onClick={() => navigate("/auditor/history")}
           >
             View History
+            <span>→</span>
           </button>
         </div>
       </section>

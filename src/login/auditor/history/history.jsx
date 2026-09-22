@@ -7,26 +7,20 @@ function AuditorHistory() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
-  const token = localStorage.getItem("token");
-
   async function getAuditEvents() {
     try {
       setLoading(true);
       setMessage("");
 
-      const response = await api.get("/audit-events", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get("/audit-events");
 
       console.log("Audit events:", response.data);
 
       if (Array.isArray(response.data)) {
         setEvents(response.data);
-      } else if (Array.isArray(response.data.events)) {
+      } else if (Array.isArray(response.data?.events)) {
         setEvents(response.data.events);
-      } else if (Array.isArray(response.data.rows)) {
+      } else if (Array.isArray(response.data?.rows)) {
         setEvents(response.data.rows);
       } else {
         setEvents([]);
@@ -50,6 +44,20 @@ function AuditorHistory() {
     getAuditEvents();
   }, []);
 
+  function formatDate(date) {
+    if (!date) {
+      return "-";
+    }
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+
+    return parsedDate.toLocaleString();
+  }
+
   return (
     <section className="auditor-history-content">
       {/* =========================
@@ -64,8 +72,7 @@ function AuditorHistory() {
           <h1>Audit History</h1>
 
           <p>
-            Review system actions and changes recorded
-            in the audit log.
+            Review system actions and changes recorded in the audit log.
           </p>
         </div>
       </div>
@@ -75,28 +82,35 @@ function AuditorHistory() {
       ========================= */}
       {message && (
         <div className="auditor-history-message">
+          <span>!</span>
           {message}
         </div>
       )}
 
       {/* =========================
-          AUDIT TABLE
+          AUDIT CARD
       ========================= */}
       <section className="auditor-history-card">
         <div className="auditor-history-card-header">
           <div>
+            <span className="auditor-history-section-label">
+              SYSTEM ACTIVITY
+            </span>
+
             <h2>Audit Events</h2>
 
             <p>
-              A record of actions performed in the
-              system.
+              A record of actions performed across the system.
             </p>
           </div>
 
-          <span className="audit-events-count">
-            {events.length}{" "}
-            {events.length === 1 ? "Event" : "Events"}
-          </span>
+          <div className="audit-events-count">
+            <strong>{events.length}</strong>
+
+            <span>
+              {events.length === 1 ? " Event" : " Events"}
+            </span>
+          </div>
         </div>
 
         {/* =========================
@@ -106,7 +120,11 @@ function AuditorHistory() {
           <div className="auditor-history-loading">
             <div className="loading-icon">◌</div>
 
-            <p>Loading audit events...</p>
+            <h3>Loading audit events...</h3>
+
+            <p>
+              Getting the latest activity from the system.
+            </p>
           </div>
         ) : events.length === 0 ? (
           /* =========================
@@ -118,8 +136,7 @@ function AuditorHistory() {
             <h3>No audit events found</h3>
 
             <p>
-              There are currently no audit events to
-              display.
+              There are currently no audit events to display.
             </p>
           </div>
         ) : (
@@ -132,59 +149,62 @@ function AuditorHistory() {
                 <tr>
                   <th>ID</th>
                   <th>Action</th>
+                  <th>Entity</th>
                   <th>User</th>
-                  <th>Before</th>
-                  <th>After</th>
                   <th>Date</th>
                 </tr>
               </thead>
 
               <tbody>
-                {events.map((event, index) => (
-                  <tr key={event.id || index}>
-                    <td className="audit-id">
-                      {event.id || "-"}
-                    </td>
+                {events.map((event, index) => {
+                  const entity =
+                    event.entity_type && event.entity_id
+                      ? `${event.entity_type} #${event.entity_id}`
+                      : event.entity_type || "-";
 
-                    <td>
-                      <span className="audit-action">
-                        {event.action ||
-                          event.event_type ||
-                          event.event ||
-                          "-"}
-                      </span>
-                    </td>
+                  return (
+                    <tr key={event.audit_id || index}>
+                      {/* ID */}
+                      <td className="audit-id">
+                        #{event.audit_id || "-"}
+                      </td>
 
-                    <td>
-                      {event.user_id ||
-                        event.userId ||
-                        event.actor_id ||
-                        "-"}
-                    </td>
+                      {/* ACTION */}
+                      <td>
+                        <span className="audit-action">
+                          {event.action || "-"}
+                        </span>
+                      </td>
 
-                    <td>
-                      <div className="audit-value">
-                        {event.before_value ||
-                          event.before ||
-                          "-"}
-                      </div>
-                    </td>
+                      {/* ENTITY */}
+                      <td>
+                        <span className="audit-entity">
+                          {entity}
+                        </span>
+                      </td>
 
-                    <td>
-                      <div className="audit-value">
-                        {event.after_value ||
-                          event.after ||
-                          "-"}
-                      </div>
-                    </td>
+                      {/* USER */}
+                      <td>
+                        <div className="audit-user">
+                          <span className="audit-user-email">
+                            {event.actor_email || "-"}
+                          </span>
 
-                    <td className="audit-date">
-                      {event.created_at ||
-                        event.timestamp ||
-                        "-"}
-                    </td>
-                  </tr>
-                ))}
+                          {event.actor_role && (
+                            <span className="audit-user-role">
+                              {event.actor_role}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* DATE */}
+                      <td className="audit-date">
+                        {formatDate(event.created_at)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
