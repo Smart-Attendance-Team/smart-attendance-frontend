@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import {
   MdEditNote,
   MdFactCheck,
@@ -7,76 +7,115 @@ import {
   MdCancel,
 } from "react-icons/md";
 
+import api from "../../../api/axios";
 import "./myCorrection.css";
 
-const corrections = [
-  {
-    id: 1,
-    course: "Database",
-    code: "CS301",
-    date: "Sep 21, 2026",
-    currentStatus: "Absent",
-    requestedStatus: "Present",
-    reason:
-      "I attended the lecture but my attendance was not recorded.",
-    status: "Pending",
-  },
-  {
-    id: 2,
-    course: "Web Development",
-    code: "CS302",
-    date: "Sep 18, 2026",
-    currentStatus: "Late",
-    requestedStatus: "Present",
-    reason:
-      "The QR scanner failed during the session.",
-    status: "Approved",
-  },
-  {
-    id: 3,
-    course: "Artificial Intelligence",
-    code: "AI301",
-    date: "Sep 15, 2026",
-    currentStatus: "Absent",
-    requestedStatus: "Excused",
-    reason:
-      "I had an approved academic activity.",
-    status: "Rejected",
-  },
-];
-
 function MyCorrections() {
+  const [corrections, setCorrections] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+
+  // =========================
+  // Get My Corrections
+  // =========================
+  async function getMyCorrections() {
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const response = await api.get("/corrections/mine");
+
+      console.log("My corrections:", response.data);
+
+      setCorrections(response.data);
+    } catch (error) {
+      console.log("My corrections error:", error);
+      console.log("Response:", error.response);
+      console.log("Data:", error.response?.data);
+
+      setMessage(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to load your correction requests."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    getMyCorrections();
+  }, []);
+
+  // =========================
+  // Stats
+  // =========================
+
   const totalRequests = corrections.length;
 
   const pendingRequests = corrections.filter(
-    (item) => item.status === "Pending"
+    (item) => item.status === "pending"
   ).length;
 
   const approvedRequests = corrections.filter(
-    (item) => item.status === "Approved"
+    (item) => item.status === "approved"
   ).length;
 
   const rejectedRequests = corrections.filter(
-    (item) => item.status === "Rejected"
+    (item) => item.status === "rejected"
   ).length;
+
+  // =========================
+  // Format Status
+  // =========================
+
+  function formatStatus(status) {
+    if (!status) return "";
+
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  }
+
+  // =========================
+  // Format Date
+  // =========================
+
+  function formatDate(date) {
+    if (!date) return "-";
+
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+  }
 
   return (
     <main className="dashboard-content">
       {/* ================= PAGE HEADER ================= */}
 
       <div className="page-header">
-        <p className="page-small-title">
-          ATTENDANCE MANAGEMENT
-        </p>
+        <div>
+          <p className="page-small-title">
+            ATTENDANCE MANAGEMENT
+          </p>
 
-        <h1>
-          My Corrections
-        </h1>
+          <h1>
+            My Corrections
+          </h1>
 
-        <p className="page-description">
-          Track the status of your attendance correction requests.
-        </p>
+          <p className="page-description">
+            Track the status of your attendance correction requests.
+          </p>
+        </div>
       </div>
+
+      {/* ================= MESSAGE ================= */}
+
+      {message && (
+        <div className="correction-message error">
+          {message}
+        </div>
+      )}
 
       {/* ================= STATS ================= */}
 
@@ -172,119 +211,143 @@ function MyCorrections() {
         {/* ================= TABLE ================= */}
 
         <div className="corrections-table-wrapper">
-          <table className="corrections-table">
-            <thead>
-              <tr>
-                <th>
-                  Course
-                </th>
+          {loading ? (
+            <div className="empty-preview">
+              <h3>
+                Loading correction requests...
+              </h3>
 
-                <th>
-                  Session Date
-                </th>
+              <p>
+                Please wait while your requests are being loaded.
+              </p>
+            </div>
+          ) : corrections.length === 0 ? (
+            <div className="empty-preview">
+              <div className="empty-preview-icon">
+                <MdFactCheck />
+              </div>
 
-                <th>
-                  Current Status
-                </th>
+              <h3>
+                No Correction Requests
+              </h3>
 
-                <th>
-                  Requested Status
-                </th>
+              <p>
+                You have not submitted any attendance correction requests yet.
+              </p>
+            </div>
+          ) : (
+            <table className="corrections-table">
+              <thead>
+                <tr>
+                  <th>
+                    Course
+                  </th>
 
-                <th>
-                  Reason
-                </th>
+                  <th>
+                    Session Date
+                  </th>
 
-                <th>
-                  Request Status
-                </th>
-              </tr>
-            </thead>
+                  <th>
+                    Current Status
+                  </th>
 
-            <tbody>
-              {corrections.map((item) => (
-                <tr key={item.id}>
-                  {/* Course */}
+                  <th>
+                    Requested Status
+                  </th>
 
-                  <td>
-                    <div className="correction-course">
-                      <div className="correction-course-icon">
-                        <MdFactCheck />
-                      </div>
+                  <th>
+                    Reason
+                  </th>
 
-                      <div>
-                        <strong>
-                          {item.course}
-                        </strong>
-
-                        <span>
-                          {item.code}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Date */}
-
-                  <td>
-                    <span className="correction-date">
-                      {item.date}
-                    </span>
-                  </td>
-
-                  {/* Current Status */}
-
-                  <td>
-                    <span
-                      className={`status-badge ${item.currentStatus.toLowerCase()}`}
-                    >
-                      {item.currentStatus}
-                    </span>
-                  </td>
-
-                  {/* Requested Status */}
-
-                  <td>
-                    <span
-                      className={`status-badge ${item.requestedStatus.toLowerCase()}`}
-                    >
-                      {item.requestedStatus}
-                    </span>
-                  </td>
-
-                  {/* Reason */}
-
-                  <td>
-                    <div className="correction-reason">
-                      {item.reason}
-                    </div>
-                  </td>
-
-                  {/* Request Status */}
-
-                  <td>
-                    <span
-                      className={`request-status ${item.status.toLowerCase()}`}
-                    >
-                      {item.status === "Pending" && (
-                        <MdPending />
-                      )}
-
-                      {item.status === "Approved" && (
-                        <MdCheckCircle />
-                      )}
-
-                      {item.status === "Rejected" && (
-                        <MdCancel />
-                      )}
-
-                      {item.status}
-                    </span>
-                  </td>
+                  <th>
+                    Request Status
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {corrections.map((item) => (
+                  <tr key={item.request_id}>
+                    {/* Course */}
+
+                    <td>
+                      <div className="correction-course">
+                        <div className="correction-course-icon">
+                          <MdFactCheck />
+                        </div>
+
+                        <div>
+                          <strong>
+                            Attendance #{item.attendance_id}
+                          </strong>
+
+                          <span>
+                            Correction Request
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Date */}
+
+                    <td>
+                      <span className="correction-date">
+                        {formatDate(item.created_at)}
+                      </span>
+                    </td>
+
+                    {/* Current Status */}
+
+                    <td>
+                      <span className="status-badge">
+                        Attendance
+                      </span>
+                    </td>
+
+                    {/* Requested Status */}
+
+                    <td>
+                      <span
+                        className={`status-badge ${item.requested_status}`}
+                      >
+                        {formatStatus(item.requested_status)}
+                      </span>
+                    </td>
+
+                    {/* Reason */}
+
+                    <td>
+                      <div className="correction-reason">
+                        {item.reason}
+                      </div>
+                    </td>
+
+                    {/* Request Status */}
+
+                    <td>
+                      <span
+                        className={`request-status ${item.status}`}
+                      >
+                        {item.status === "pending" && (
+                          <MdPending />
+                        )}
+
+                        {item.status === "approved" && (
+                          <MdCheckCircle />
+                        )}
+
+                        {item.status === "rejected" && (
+                          <MdCancel />
+                        )}
+
+                        {formatStatus(item.status)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 

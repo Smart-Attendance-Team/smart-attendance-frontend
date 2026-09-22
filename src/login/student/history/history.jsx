@@ -4,73 +4,11 @@ import "./history.css";
 
 function History() {
   const [attendance, setAttendance] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [statusFilter, setStatusFilter] = useState("All");
   const [dateFilter, setDateFilter] = useState("");
-
-  // =====================================================
-  // TEMPORARY MOCK DATA
-  // سيتم استبدالها بالـBackend عندما يتم توصيله
-  // =====================================================
-
-  const mockAttendance = [
-    {
-      attendance_id: 1,
-      course_name: "Database",
-      course_code: "CS301",
-      session_date: "2026-09-21",
-      attendance_status: "PRESENT",
-      minutes_late: 0,
-      attendance_timestamp: "10:03 AM",
-    },
-    {
-      attendance_id: 2,
-      course_name: "Web Development",
-      course_code: "CS302",
-      session_date: "2026-09-20",
-      attendance_status: "PRESENT",
-      minutes_late: 2,
-      attendance_timestamp: "12:02 PM",
-    },
-    {
-      attendance_id: 3,
-      course_name: "Artificial Intelligence",
-      course_code: "AI301",
-      session_date: "2026-09-19",
-      attendance_status: "LATE",
-      minutes_late: 12,
-      attendance_timestamp: "02:12 PM",
-    },
-    {
-      attendance_id: 4,
-      course_name: "Data Structures",
-      course_code: "CS201",
-      session_date: "2026-09-18",
-      attendance_status: "ABSENT",
-      minutes_late: 0,
-      attendance_timestamp: "-",
-    },
-    {
-      attendance_id: 5,
-      course_name: "Machine Learning",
-      course_code: "AI302",
-      session_date: "2026-09-17",
-      attendance_status: "PRESENT",
-      minutes_late: 0,
-      attendance_timestamp: "11:01 AM",
-    },
-    {
-      attendance_id: 6,
-      course_name: "Database",
-      course_code: "CS301",
-      session_date: "2026-09-16",
-      attendance_status: "LATE",
-      minutes_late: 7,
-      attendance_timestamp: "10:07 AM",
-    },
-  ];
 
   // =====================================================
   // GET ATTENDANCE FROM BACKEND
@@ -78,44 +16,28 @@ function History() {
 
   useEffect(() => {
     async function getAttendance() {
-      /*
-        TEMPORARY:
-        Backend is currently not connected.
-        We use mock data so the UI can be tested.
-
-        Later:
-        Remove the mock data and uncomment the API request.
-      */
-
-      setAttendance(mockAttendance);
-      setLoading(false);
-
-      /*
       try {
-        const token = localStorage.getItem("token");
+        setLoading(true);
+        setError("");
 
-        const response = await api.get("/attendance/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await api.get("/attendance/me");
 
         console.log("Attendance:", response.data);
 
         setAttendance(response.data);
       } catch (error) {
-        console.log("ERROR:", error);
-        console.log("RESPONSE:", error.response);
-        console.log("DATA:", error.response?.data);
+        console.log("Attendance error:", error);
+        console.log("Response:", error.response);
+        console.log("Data:", error.response?.data);
 
         setError(
           error.response?.data?.error ||
-            "Failed to load attendance history"
+            error.response?.data?.message ||
+            "Failed to load attendance history."
         );
       } finally {
         setLoading(false);
       }
-      */
     }
 
     getAttendance();
@@ -128,7 +50,8 @@ function History() {
   const filteredAttendance = attendance.filter((item) => {
     const matchesStatus =
       statusFilter === "All" ||
-      item.attendance_status === statusFilter;
+      item.attendance_status.toLowerCase() ===
+        statusFilter.toLowerCase();
 
     const matchesDate =
       !dateFilter ||
@@ -144,15 +67,15 @@ function History() {
   const totalClasses = attendance.length;
 
   const presentCount = attendance.filter(
-    (item) => item.attendance_status === "PRESENT"
+    (item) => item.attendance_status.toLowerCase() === "present"
   ).length;
 
   const absentCount = attendance.filter(
-    (item) => item.attendance_status === "ABSENT"
+    (item) => item.attendance_status.toLowerCase() === "absent"
   ).length;
 
   const lateCount = attendance.filter(
-    (item) => item.attendance_status === "LATE"
+    (item) => item.attendance_status.toLowerCase() === "late"
   ).length;
 
   const attendanceRate =
@@ -167,19 +90,43 @@ function History() {
   // =====================================================
 
   function getStatusLabel(status) {
-    switch (status) {
-      case "PRESENT":
+    switch (status.toLowerCase()) {
+      case "present":
         return "Present";
 
-      case "ABSENT":
+      case "absent":
         return "Absent";
 
-      case "LATE":
+      case "late":
         return "Late";
+
+      case "excused":
+        return "Excused";
 
       default:
         return status;
     }
+  }
+
+  // =====================================================
+  // FORMAT ATTENDANCE TIME
+  // =====================================================
+
+  function formatAttendanceTime(timestamp) {
+    if (!timestamp) {
+      return "-";
+    }
+
+    const date = new Date(timestamp);
+
+    if (Number.isNaN(date.getTime())) {
+      return timestamp;
+    }
+
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   }
 
   return (
@@ -263,11 +210,13 @@ function History() {
             >
               <option value="All">All Status</option>
 
-              <option value="PRESENT">Present</option>
+              <option value="present">Present</option>
 
-              <option value="LATE">Late</option>
+              <option value="late">Late</option>
 
-              <option value="ABSENT">Absent</option>
+              <option value="absent">Absent</option>
+
+              <option value="excused">Excused</option>
             </select>
 
             <input
@@ -390,7 +339,9 @@ function History() {
 
                       <td>
                         <span className="time-text">
-                          {item.attendance_timestamp}
+                          {formatAttendanceTime(
+                            item.attendance_timestamp
+                          )}
                         </span>
                       </td>
                     </tr>

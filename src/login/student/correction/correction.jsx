@@ -1,91 +1,174 @@
 import { useEffect, useState } from "react";
+import api from "../../../api/axios";
 import "./correction.css";
 
 function Correction() {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   const [selectedRecord, setSelectedRecord] = useState("");
   const [requestedStatus, setRequestedStatus] = useState("present");
   const [reason, setReason] = useState("");
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // =========================
-  // MOCK DATA
-  // Replace with Backend API later
-  // =========================
-  useEffect(() => {
-    const mockAttendanceRecords = [
-      {
-        attendance_id: 1,
-        course_name: "Database",
-        course_code: "CS301",
-        session_date: "2026-09-21",
-        attendance_status: "absent",
-        attendance_timestamp: "-",
-      },
-      {
-        attendance_id: 2,
-        course_name: "Web Development",
-        course_code: "CS302",
-        session_date: "2026-09-20",
-        attendance_status: "late",
-        attendance_timestamp: "12:02 PM",
-      },
-      {
-        attendance_id: 3,
-        course_name: "Artificial Intelligence",
-        course_code: "AI301",
-        session_date: "2026-09-19",
-        attendance_status: "absent",
-        attendance_timestamp: "-",
-      },
-      {
-        attendance_id: 4,
-        course_name: "Data Structures",
-        course_code: "CS201",
-        session_date: "2026-09-18",
-        attendance_status: "absent",
-        attendance_timestamp: "-",
-      },
-    ];
+  // =====================================================
+  // GET ATTENDANCE RECORDS FROM BACKEND
+  // =====================================================
 
-    setAttendanceRecords(mockAttendanceRecords);
+  useEffect(() => {
+    async function getAttendanceRecords() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await api.get("/attendance/me");
+
+        console.log(
+          "Attendance records:",
+          response.data
+        );
+
+        setAttendanceRecords(response.data);
+      } catch (error) {
+        console.log(
+          "Attendance records error:",
+          error
+        );
+        console.log("Response:", error.response);
+        console.log("Data:", error.response?.data);
+
+        setError(
+          error.response?.data?.error ||
+            error.response?.data?.message ||
+            "Failed to load attendance records."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    getAttendanceRecords();
   }, []);
 
+  // =====================================================
+  // SELECTED ATTENDANCE
+  // =====================================================
+
   const selectedAttendance = attendanceRecords.find(
-    (record) => record.attendance_id === Number(selectedRecord)
+    (record) =>
+      record.attendance_id === Number(selectedRecord)
   );
 
-  // =========================
+  // =====================================================
+  // FORMAT STATUS
+  // =====================================================
+
+  function getStatusLabel(status) {
+    if (!status) {
+      return "";
+    }
+
+    switch (status.toLowerCase()) {
+      case "present":
+        return "Present";
+
+      case "absent":
+        return "Absent";
+
+      case "late":
+        return "Late";
+
+      case "excused":
+        return "Excused";
+
+      default:
+        return status;
+    }
+  }
+
+  // =====================================================
+  // FORMAT ATTENDANCE TIME
+  // =====================================================
+
+  function formatAttendanceTime(timestamp) {
+    if (!timestamp) {
+      return "-";
+    }
+
+    const date = new Date(timestamp);
+
+    if (Number.isNaN(date.getTime())) {
+      return timestamp;
+    }
+
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  // =====================================================
   // Submit Correction
-  // =========================
-  function handleSubmit(event) {
+  // =====================================================
+
+  async function handleSubmit(event) {
     event.preventDefault();
     setMessage("");
 
     if (!selectedRecord) {
-      setMessage("Please select an attendance record.");
+      setMessage(
+        "Please select an attendance record."
+      );
       return;
     }
 
     if (!reason.trim()) {
-      setMessage("Please enter a reason for your correction request.");
+      setMessage(
+        "Please enter a reason for your correction request."
+      );
       return;
     }
 
     setSubmitting(true);
 
-    // =========================
-    // BACKEND LATER
-    // POST /corrections
-    // =========================
-    setTimeout(() => {
-      setMessage("Correction request submitted successfully.");
+    try {
+      const response = await api.post("/corrections", {
+        attendance_id: Number(selectedRecord),
+        requested_status: requestedStatus,
+        reason: reason.trim(),
+        evidence_url: null,
+      });
+
+      console.log(
+        "Correction request response:",
+        response.data
+      );
+
+      setMessage(
+        "Correction request submitted successfully."
+      );
+
       setSelectedRecord("");
       setRequestedStatus("present");
       setReason("");
+    } catch (error) {
+      console.log(
+        "Correction request error:",
+        error
+      );
+      console.log("Response:", error.response);
+      console.log("Data:", error.response?.data);
+
+      setMessage(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to submit correction request."
+      );
+    } finally {
       setSubmitting(false);
-    }, 800);
+    }
   }
 
   return (
@@ -94,13 +177,15 @@ function Correction() {
 
       <div className="page-header">
         <div>
-          <p className="page-eyebrow">Attendance Management</p>
+          <p className="page-eyebrow">
+            Attendance Management
+          </p>
 
           <h1>Request Attendance Correction</h1>
 
           <p>
-            Submit a correction request if your attendance record
-            is incorrect.
+            Submit a correction request if your attendance
+            record is incorrect.
           </p>
         </div>
       </div>
@@ -116,7 +201,8 @@ function Correction() {
               <h2>Correction Request</h2>
 
               <p>
-                Provide the attendance record and explain the issue.
+                Provide the attendance record and explain
+                the issue.
               </p>
             </div>
 
@@ -133,28 +219,42 @@ function Correction() {
                 Attendance Record
               </label>
 
-              <select
-                id="attendance"
-                value={selectedRecord}
-                onChange={(event) =>
-                  setSelectedRecord(event.target.value)
-                }
-              >
-                <option value="">
-                  Select an attendance record
-                </option>
-
-                {attendanceRecords.map((record) => (
-                  <option
-                    key={record.attendance_id}
-                    value={record.attendance_id}
-                  >
-                    {record.course_name} -{" "}
-                    {record.session_date} -{" "}
-                    {record.attendance_status}
+              {loading ? (
+                <p>
+                  Loading attendance records...
+                </p>
+              ) : error ? (
+                <p className="correction-message error">
+                  {error}
+                </p>
+              ) : (
+                <select
+                  id="attendance"
+                  value={selectedRecord}
+                  onChange={(event) =>
+                    setSelectedRecord(
+                      event.target.value
+                    )
+                  }
+                >
+                  <option value="">
+                    Select an attendance record
                   </option>
-                ))}
-              </select>
+
+                  {attendanceRecords.map((record) => (
+                    <option
+                      key={record.attendance_id}
+                      value={record.attendance_id}
+                    >
+                      {record.course_name} -{" "}
+                      {record.session_date} -{" "}
+                      {getStatusLabel(
+                        record.attendance_status
+                      )}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             {/* Current Status */}
@@ -181,9 +281,11 @@ function Correction() {
                   <span>Current Status</span>
 
                   <span
-                    className={`status-badge ${selectedAttendance.attendance_status}`}
+                    className={`status-badge ${selectedAttendance.attendance_status.toLowerCase()}`}
                   >
-                    {selectedAttendance.attendance_status}
+                    {getStatusLabel(
+                      selectedAttendance.attendance_status
+                    )}
                   </span>
                 </div>
               </div>
@@ -200,7 +302,9 @@ function Correction() {
                 id="status"
                 value={requestedStatus}
                 onChange={(event) =>
-                  setRequestedStatus(event.target.value)
+                  setRequestedStatus(
+                    event.target.value
+                  )
                 }
               >
                 <option value="present">
@@ -231,7 +335,8 @@ function Correction() {
               />
 
               <small>
-                Please provide a clear reason for your request.
+                Please provide a clear reason for your
+                request.
               </small>
             </div>
 
@@ -254,7 +359,11 @@ function Correction() {
             <button
               type="submit"
               className="submit-correction-btn"
-              disabled={submitting}
+              disabled={
+                submitting ||
+                loading ||
+                !!error
+              }
             >
               {submitting
                 ? "Submitting..."
@@ -284,7 +393,9 @@ function Correction() {
             <div className="preview-content">
               <div className="preview-course">
                 <div className="course-icon">
-                  DB
+                  {selectedAttendance.course_code
+                    ?.slice(0, 2)
+                    .toUpperCase() || "CR"}
                 </div>
 
                 <div>
@@ -310,9 +421,11 @@ function Correction() {
                 <span>Current Status</span>
 
                 <span
-                  className={`status-badge ${selectedAttendance.attendance_status}`}
+                  className={`status-badge ${selectedAttendance.attendance_status.toLowerCase()}`}
                 >
-                  {selectedAttendance.attendance_status}
+                  {getStatusLabel(
+                    selectedAttendance.attendance_status
+                  )}
                 </span>
               </div>
 
@@ -322,7 +435,7 @@ function Correction() {
                 <span
                   className={`status-badge ${requestedStatus}`}
                 >
-                  {requestedStatus}
+                  {getStatusLabel(requestedStatus)}
                 </span>
               </div>
 
@@ -330,7 +443,9 @@ function Correction() {
                 <span>Attendance Time</span>
 
                 <strong>
-                  {selectedAttendance.attendance_timestamp}
+                  {formatAttendanceTime(
+                    selectedAttendance.attendance_timestamp
+                  )}
                 </strong>
               </div>
 

@@ -63,12 +63,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
-
   margin-bottom: 22px;
   padding: 12px 15px;
-
   border-radius: 9px;
-
   font-size: 13px;
 }
 
@@ -81,15 +78,11 @@
 .system-message span {
   width: 23px;
   height: 23px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 50%;
-
   background: #d7f7e5;
-
   font-size: 12px;
   font-weight: 700;
 }
@@ -105,40 +98,29 @@
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-
   gap: 16px;
-
   margin-bottom: 24px;
 }
 
 .stat-card {
   min-height: 105px;
-
   display: flex;
   align-items: center;
-
   gap: 14px;
-
   padding: 20px;
-
   background: #ffffff;
-
   border: 1px solid #e9ecf1;
   border-radius: 12px;
-
   box-shadow: 0 2px 8px rgba(30, 41, 59, 0.025);
 }
 
 .stat-icon {
   width: 43px;
   height: 43px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 11px;
-
   font-size: 19px;
   font-weight: 700;
 }
@@ -165,17 +147,13 @@
 
 .stat-card span {
   display: block;
-
   margin-bottom: 5px;
-
   color: #9299a6;
-
   font-size: 12px;
 }
 
 .stat-card strong {
   color: #293241;
-
   font-size: 23px;
   font-weight: 700;
 }
@@ -186,12 +164,9 @@
 
 .corrections-card {
   background: #ffffff;
-
   border: 1px solid #e8ebf0;
   border-radius: 13px;
-
   overflow: hidden;
-
   box-shadow: 0 2px 10px rgba(30, 41, 59, 0.025);
 }
 
@@ -199,41 +174,31 @@
 
 .card-header {
   min-height: 78px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   padding: 18px 22px;
-
   border-bottom: 1px solid #edf0f4;
 }
 
 .card-header h2 {
   margin: 0;
-
   color: #293241;
-
   font-size: 16px;
   font-weight: 700;
 }
 
 .card-header p {
   margin: 5px 0 0;
-
   color: #9aa1ad;
-
   font-size: 12px;
 }
 
 .pending-count {
   padding: 6px 10px;
-
   border-radius: 20px;
-
   background: #fff5df;
   color: #d98a00;
-
   font-size: 11px;
   font-weight: 600;
 }
@@ -250,41 +215,28 @@
 .corrections-table {
   width: 100%;
   min-width: 1250px;
-
   border-collapse: collapse;
-
   table-layout: auto;
 }
 
 .corrections-table th {
   padding: 13px 16px;
-
   background: #fafbfc;
-
   border-bottom: 1px solid #e9edf2;
-
   color: #7c8491;
-
   font-size: 10px;
   font-weight: 700;
-
   text-transform: uppercase;
   letter-spacing: 0.5px;
-
   text-align: left;
-
   white-space: nowrap;
 }
 
 .corrections-table td {
   padding: 15px 16px;
-
   border-bottom: 1px solid #f0f2f5;
-
   color: #4b5563;
-
   font-size: 12px;
-
   vertical-align: middle;
 }
 
@@ -306,50 +258,37 @@
 
 .student-cell {
   min-width: 170px;
-
   display: flex;
   align-items: center;
-
   gap: 10px;
 }
 
 .student-avatar {
   flex-shrink: 0;
-
   width: 34px;
   height: 34px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 9px;
-
   background: #eeeeff;
   color: #5b5cd9;
-
   font-size: 10px;
   font-weight: 700;
 }
 
 .student-cell strong {
   display: block;
-
   color: #303846;
-
   font-size: 12px;
   font-weight: 600;
-
   white-space: nowrap;
 }
 
 .student-cell span {
   display: block;
-
   margin-top: 3px;
-
   color: #a0a6b0;
-
   font-size: 10px;
 }
 
@@ -359,22 +298,16 @@
 
 .course-cell strong {
   display: block;
-
   color: #374151;
-
   font-size: 12px;
   font-weight: 600;
-
   white-space: nowrap;
 }
 
 .course-cell span {
   display: block;
-
   margin-top: 3px;
-
   color: #a0a6b0;
-
   font-size: 10px;
 }
 
@@ -384,7 +317,6 @@
 
 .date-text {
   color: #737b88;
-
   white-space: nowrap;
 }
 
@@ -395,14 +327,10 @@
 .status-badge {
   display: inline-flex;
   align-items: center;
-
   padding: 5px 9px;
-
   border-radius: 6px;
-
   font-size: 10px;
   font-weight: 600;
-
   white-space: nowrap;
 }
 
@@ -437,9 +365,7 @@
 
 .reason-cell {
   width: 180px;
-
   color: #69717e;
-
   font-size: 11px;
   line-height: 1.5;
 }
@@ -450,12 +376,9 @@
 
 .evidence-link {
   color: #5d61d7;
-
   font-size: 11px;
   font-weight: 600;
-
   text-decoration: none;
-
   white-space: nowrap;
 }
 
@@ -470,19 +393,15 @@
 .request-status {
   display: inline-flex;
   align-items: center;
-
   gap: 6px;
-
   font-size: 10px;
   font-weight: 600;
-
   white-space: nowrap;
 }
 
 .status-dot {
   width: 7px;
   height: 7px;
-
   border-radius: 50%;
 }
 
@@ -516,36 +435,26 @@
 
 .review-button {
   border: none;
-
   border-radius: 7px;
-
   background: #5b5edb;
   color: #ffffff;
-
   padding: 7px 12px;
-
   font-size: 10px;
   font-weight: 600;
-
   cursor: pointer;
-
   transition: 0.2s ease;
-
   white-space: nowrap;
 }
 
 .review-button:hover {
   background: #4d50c9;
-
   transform: translateY(-1px);
 }
 
 .reviewed-text {
   color: #9ca3af;
-
   font-size: 10px;
   font-weight: 500;
-
   white-space: nowrap;
 }
 
@@ -555,29 +464,21 @@
 
 .review-box {
   width: 220px;
-
   display: flex;
   flex-direction: column;
-
   gap: 8px;
 }
 
 .review-box input {
   width: 100%;
   height: 34px;
-
   padding: 0 9px;
-
   border: 1px solid #dfe3e9;
   border-radius: 7px;
-
   outline: none;
-
   background: #ffffff;
   color: #374151;
-
   font-size: 11px;
-
   transition: border 0.2s ease;
 }
 
@@ -587,29 +488,22 @@
 
 .review-box input:focus {
   border-color: #7779df;
-
   box-shadow: 0 0 0 3px rgba(91, 94, 219, 0.08);
 }
 
 .review-actions {
   display: flex;
   align-items: center;
-
   gap: 5px;
 }
 
 .review-actions button {
   border: none;
-
   border-radius: 6px;
-
   padding: 6px 8px;
-
   font-size: 9px;
   font-weight: 600;
-
   cursor: pointer;
-
   transition: 0.15s ease;
 }
 
@@ -646,46 +540,35 @@
 
 .empty-state {
   padding: 60px 20px;
-
   display: flex;
   flex-direction: column;
   align-items: center;
-
   text-align: center;
 }
 
 .empty-icon {
   width: 48px;
   height: 48px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   margin-bottom: 14px;
-
   border-radius: 50%;
-
   background: #eafaf1;
   color: #22a66f;
-
   font-size: 20px;
   font-weight: 700;
 }
 
 .empty-state h3 {
   margin: 0 0 6px;
-
   color: #374151;
-
   font-size: 15px;
 }
 
 .empty-state p {
   margin: 0;
-
   color: #9ca3af;
-
   font-size: 12px;
 }
 
@@ -695,54 +578,39 @@
 
 .review-info {
   margin-top: 18px;
-
   display: flex;
   align-items: flex-start;
-
   gap: 12px;
-
   padding: 15px 17px;
-
   border: 1px solid #e3e5ff;
   border-radius: 10px;
-
   background: #f7f7ff;
 }
 
 .info-icon {
   flex-shrink: 0;
-
   width: 24px;
   height: 24px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 50%;
-
   background: #e5e6ff;
   color: #5b5edb;
-
   font-size: 12px;
   font-weight: 700;
 }
 
 .review-info strong {
   display: block;
-
   margin-bottom: 4px;
-
   color: #4d51bd;
-
   font-size: 12px;
 }
 
 .review-info p {
   margin: 0;
-
   color: #777f8e;
-
   font-size: 11px;
   line-height: 1.6;
 }

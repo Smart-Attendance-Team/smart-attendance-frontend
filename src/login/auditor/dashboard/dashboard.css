@@ -1,61 +1,55 @@
+/* =====================================================
+   AUDITOR DASHBOARD
+===================================================== */
+
 .auditor-dashboard-content {
   width: 100%;
-  padding: 32px;
   box-sizing: border-box;
 }
 
-/* =========================================================
+/* =====================================================
    PAGE HEADER
-========================================================= */
+===================================================== */
 
 .auditor-page-header {
-  margin-bottom: 28px;
+  margin-bottom: 26px;
 }
 
 .auditor-small-title {
   display: block;
-
   margin-bottom: 7px;
-
   color: #6b6fe5;
-
   font-size: 11px;
   font-weight: 700;
-
   letter-spacing: 0.8px;
 }
 
 .auditor-page-header h1 {
   margin: 0;
-
   color: #25283b;
-
   font-size: 28px;
   line-height: 1.2;
-
   font-weight: 700;
 }
 
 .auditor-page-header p {
   margin: 8px 0 0;
-
   color: #8b93a1;
-
   font-size: 13px;
+  line-height: 1.6;
 }
 
-/* =========================================================
+/* =====================================================
    OVERVIEW
-========================================================= */
+===================================================== */
 
 .auditor-overview {
+  margin-bottom: 20px;
   padding: 24px;
-
+  box-sizing: border-box;
   background: #ffffff;
-
   border: 1px solid #e8ebf0;
   border-radius: 13px;
-
   box-shadow: 0 2px 10px rgba(30, 41, 59, 0.025);
 }
 
@@ -65,148 +59,127 @@
 
 .auditor-overview-header h2 {
   margin: 0;
-
   color: #293241;
-
   font-size: 17px;
   font-weight: 700;
 }
 
 .auditor-overview-header p {
   margin: 6px 0 0;
-
   color: #8b93a1;
-
   font-size: 12px;
+  line-height: 1.6;
 }
 
-/* =========================================================
+/* =====================================================
    ACTION CARD
-========================================================= */
+===================================================== */
 
 .auditor-action-card {
   display: flex;
   align-items: center;
-
   gap: 16px;
-
   padding: 18px;
-
+  box-sizing: border-box;
   background: #fafbfc;
-
   border: 1px solid #edf0f4;
-
   border-radius: 11px;
-
   transition: 0.2s ease;
 }
 
 .auditor-action-card:hover {
   background: #ffffff;
-
   border-color: #dfe1f8;
-
   transform: translateY(-2px);
 }
 
 .auditor-action-icon {
   width: 42px;
   height: 42px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
-  border-radius: 10px;
-
+  border-radius: 9px;
   background: #eeeffd;
-
   color: #6267d8;
-
   font-size: 18px;
 }
 
 .auditor-action-info {
   flex: 1;
+  min-width: 0;
 }
 
 .auditor-action-info h3 {
   margin: 0 0 5px;
-
   color: #303544;
-
   font-size: 13px;
   font-weight: 600;
 }
 
 .auditor-action-info p {
   margin: 0;
-
   color: #8b93a1;
-
   font-size: 11px;
+  line-height: 1.5;
 }
 
 .auditor-action-button {
-  min-height: 38px;
-
-  padding: 0 15px;
-
+  min-height: 40px;
+  padding: 0 17px;
   border: none;
   border-radius: 8px;
-
   background: #6b6fe5;
   color: #ffffff;
-
   font-family: inherit;
-
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-
   cursor: pointer;
-
   transition: 0.2s ease;
 }
 
 .auditor-action-button:hover {
   background: #5e63d8;
-
   transform: translateY(-1px);
 }
 
-/* =========================================================
+.auditor-action-button:active {
+  transform: translateY(0);
+}
+
+/* =====================================================
    RESPONSIVE
-========================================================= */
+===================================================== */
 
 @media (max-width: 800px) {
-  .auditor-dashboard-content {
-    padding: 25px;
+  .auditor-overview {
+    padding: 20px;
   }
 }
 
 @media (max-width: 650px) {
-  .auditor-dashboard-content {
-    padding: 18px;
-  }
-
   .auditor-overview {
     padding: 18px;
+    border-radius: 11px;
   }
 
   .auditor-page-header h1 {
     font-size: 24px;
   }
 
+  .auditor-page-header p {
+    font-size: 12px;
+  }
+
   .auditor-action-card {
     align-items: flex-start;
-
     flex-wrap: wrap;
+    gap: 12px;
   }
 
   .auditor-action-info {
-    min-width: calc(100% - 58px);
+    min-width: calc(100% - 54px);
   }
 
   .auditor-action-button {

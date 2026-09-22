@@ -1,54 +1,165 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import api from "../../../api/axios";
 import "./home.css";
 
 function Home() {
-  // =========================================================
-  // BACKEND CODE - TEMPORARILY DISABLED FOR UI TESTING
-  // =========================================================
+  const [user, setUser] = useState(null);
+  const [attendance, setAttendance] = useState([]);
+  const [corrections, setCorrections] = useState([]);
+  const [timetable, setTimetable] = useState([]);
 
-  // const [user, setUser] = useState(null);
-  // const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // useEffect(() => {
-  //   async function getUser() {
-  //     try {
-  //       const token = localStorage.getItem("token");
+  // =====================================================
+  // GET STUDENT DASHBOARD DATA
+  // =====================================================
 
-  //       const response = await api.get("/me", {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       });
+  useEffect(() => {
+    async function getDashboardData() {
+      try {
+        setLoading(true);
+        setError("");
 
-  //       console.log("Current user:", response.data);
+        const [
+          userResponse,
+          attendanceResponse,
+          correctionsResponse,
+          timetableResponse,
+        ] = await Promise.all([
+          api.get("/students/me"),
+          api.get("/attendance/me"),
+          api.get("/corrections/mine"),
+          api.get("/students/my-timetable"),
+        ]);
 
-  //       setUser(response.data);
-  //     } catch (error) {
-  //       console.log("ERROR:", error);
-  //       console.log("RESPONSE:", error.response);
-  //       console.log("DATA:", error.response?.data);
+        console.log("Student profile:", userResponse.data);
+        console.log("Attendance:", attendanceResponse.data);
+        console.log("Corrections:", correctionsResponse.data);
+        console.log("Timetable:", timetableResponse.data);
 
-  //       setError(
-  //         error.response?.data?.error ||
-  //           "Failed to load user information"
-  //       );
-  //     }
-  //   }
+        setUser(userResponse.data);
+        setAttendance(attendanceResponse.data);
+        setCorrections(correctionsResponse.data);
+        setTimetable(timetableResponse.data);
+      } catch (error) {
+        console.log("Dashboard error:", error);
+        console.log("Response:", error.response);
+        console.log("Data:", error.response?.data);
 
-  //   getUser();
-  // }, []);
+        setError(
+          error.response?.data?.error ||
+            error.response?.data?.message ||
+            "Failed to load dashboard data."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
 
-  // =========================================================
-  // MOCK DATA - TEMPORARILY USED FOR UI TESTING
-  // =========================================================
+    getDashboardData();
+  }, []);
 
-  const user = {
-    userId: "STU001",
-    role: "STUDENT",
-  };
+  // =====================================================
+  // ATTENDANCE STATISTICS
+  // =====================================================
 
-  // =========================================================
-  // END OF MOCK DATA
-  // =========================================================
+  const totalClasses = attendance.length;
+
+  const presentCount = attendance.filter(
+    (item) =>
+      item.attendance_status?.toLowerCase() === "present"
+  ).length;
+
+  const absentCount = attendance.filter(
+    (item) =>
+      item.attendance_status?.toLowerCase() === "absent"
+  ).length;
+
+  const lateCount = attendance.filter(
+    (item) =>
+      item.attendance_status?.toLowerCase() === "late"
+  ).length;
+
+  const attendanceRate =
+    totalClasses > 0
+      ? Math.round(
+          ((presentCount + lateCount) / totalClasses) * 100
+        )
+      : 0;
+
+  const pendingCorrections = corrections.filter(
+    (item) =>
+      item.status?.toLowerCase() === "pending"
+  ).length;
+
+  // =====================================================
+  // TODAY'S CLASSES
+  // =====================================================
+
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+  });
+
+  const todaysClasses = timetable.filter(
+    (item) =>
+      item.day_of_week?.toLowerCase() === today.toLowerCase()
+  );
+
+  // =====================================================
+  // RECENT ATTENDANCE
+  // =====================================================
+
+  const recentAttendance = attendance.slice(0, 5);
+
+  // =====================================================
+  // FORMAT STATUS
+  // =====================================================
+
+  function getStatusLabel(status) {
+    if (!status) {
+      return "";
+    }
+
+    switch (status.toLowerCase()) {
+      case "present":
+        return "Present";
+
+      case "absent":
+        return "Absent";
+
+      case "late":
+        return "Late";
+
+      case "excused":
+        return "Excused";
+
+      default:
+        return status;
+    }
+  }
+
+  // =====================================================
+  // FORMAT TIME
+  // =====================================================
+
+  function formatTime(time) {
+    if (!time) {
+      return "-";
+    }
+
+    const [hours, minutes] = time.split(":").map(Number);
+
+    const date = new Date();
+
+    date.setHours(hours, minutes, 0, 0);
+
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
 
   return (
     <main className="dashboard-content">
@@ -64,7 +175,11 @@ function Home() {
           </p>
 
           <h1>
-            Welcome back! 👋
+            Welcome back
+            {user?.student_name
+              ? `, ${user.student_name}!`
+              : "!"}
+            👋
           </h1>
 
           <p className="welcome-description">
@@ -92,24 +207,15 @@ function Home() {
 
       </section>
 
+      {/* ================= ERROR ================= */}
 
-      {/* =====================================================
-          BACKEND ERROR MESSAGE - TEMPORARILY DISABLED
-          Will be enabled when Backend is connected.
-      ===================================================== */}
-
-      {/*
       {error && (
         <div className="error-message">
           {error}
         </div>
       )}
-      */}
 
-
-      {/* =====================================================
-          USER INFO - USING MOCK DATA FOR UI TESTING
-      ===================================================== */}
+      {/* ================= USER INFO ================= */}
 
       {user && (
         <div className="user-info-bar">
@@ -121,7 +227,7 @@ function Home() {
             </span>
 
             <strong>
-              {user.userId}
+              {user.student_code}
             </strong>
 
           </div>
@@ -129,11 +235,35 @@ function Home() {
           <div>
 
             <span>
-              Role
+              Name
             </span>
 
             <strong>
-              {user.role}
+              {user.student_name}
+            </strong>
+
+          </div>
+
+          <div>
+
+            <span>
+              Level
+            </span>
+
+            <strong>
+              {user.level}
+            </strong>
+
+          </div>
+
+          <div>
+
+            <span>
+              Department
+            </span>
+
+            <strong>
+              {user.department_name}
             </strong>
 
           </div>
@@ -141,416 +271,516 @@ function Home() {
         </div>
       )}
 
+      {/* ================= LOADING ================= */}
 
-      {/* ================= STATISTICS ================= */}
+      {loading ? (
+        <div className="empty-state">
 
-      <section className="stats-grid">
-
-        <div className="stat-card">
-
-          <div className="stat-icon blue">
-            %
+          <div className="empty-icon">
+            ◷
           </div>
 
-          <div className="stat-content">
+          <h3>
+            Loading dashboard...
+          </h3>
 
-            <span>
-              Attendance Rate
-            </span>
-
-            <strong>
-              92%
-            </strong>
-
-            <small>
-              Overall attendance
-            </small>
-
-          </div>
+          <p>
+            Getting your latest attendance information.
+          </p>
 
         </div>
+      ) : (
+        <>
 
+          {/* ================= STATISTICS ================= */}
 
-        <div className="stat-card">
+          <section className="stats-grid">
 
-          <div className="stat-icon green">
-            ✓
-          </div>
+            <div className="stat-card">
 
-          <div className="stat-content">
+              <div className="stat-icon blue">
+                %
+              </div>
 
-            <span>
-              Present
-            </span>
-
-            <strong>
-              24
-            </strong>
-
-            <small>
-              Classes attended
-            </small>
-
-          </div>
-
-        </div>
-
-
-        <div className="stat-card">
-
-          <div className="stat-icon red">
-            !
-          </div>
-
-          <div className="stat-content">
-
-            <span>
-              Absent
-            </span>
-
-            <strong>
-              2
-            </strong>
-
-            <small>
-              Classes missed
-            </small>
-
-          </div>
-
-        </div>
-
-
-        <div className="stat-card">
-
-          <div className="stat-icon orange">
-            ⏱
-          </div>
-
-          <div className="stat-content">
-
-            <span>
-              Corrections
-            </span>
-
-            <strong>
-              3
-            </strong>
-
-            <small>
-              Pending requests
-            </small>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      {/* ================= MAIN GRID ================= */}
-
-      <section className="dashboard-grid">
-
-        {/* ================= ATTENDANCE OVERVIEW ================= */}
-
-        <div className="dashboard-card attendance-card">
-
-          <div className="card-header">
-
-            <div>
-
-              <h2>
-                Attendance Overview
-              </h2>
-
-              <p>
-                Your attendance performance
-              </p>
-
-            </div>
-
-            <select className="period-select">
-
-              <option>
-                This Month
-              </option>
-
-              <option>
-                This Semester
-              </option>
-
-            </select>
-
-          </div>
-
-
-          {/* MOCK ATTENDANCE DATA */}
-
-          <div className="attendance-placeholder">
-
-            <div className="circle-progress">
-
-              <div className="circle-inner">
-
-                <strong>
-                  92%
-                </strong>
+              <div className="stat-content">
 
                 <span>
-                  Attendance
+                  Attendance Rate
                 </span>
 
+                <strong>
+                  {attendanceRate}%
+                </strong>
+
+                <small>
+                  Overall attendance
+                </small>
+
               </div>
 
             </div>
 
 
-            <div className="attendance-legend">
+            <div className="stat-card">
 
-              <div>
-
-                <span className="legend-dot present"></span>
-
-                Present
-
-                <strong>
-                  24
-                </strong>
-
+              <div className="stat-icon green">
+                ✓
               </div>
 
-
-              <div>
-
-                <span className="legend-dot absent"></span>
-
-                Absent
-
-                <strong>
-                  2
-                </strong>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        {/* ================= QUICK ACTIONS ================= */}
-
-        <div className="dashboard-card">
-
-          <div className="card-header">
-
-            <div>
-
-              <h2>
-                Quick Actions
-              </h2>
-
-              <p>
-                Frequently used actions
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <div className="quick-actions">
-
-            <a
-              href="/qrscanner"
-              className="quick-action"
-            >
-
-              <div className="quick-icon blue">
-                ▣
-              </div>
-
-              <div>
-
-                <strong>
-                  Scan QR
-                </strong>
+              <div className="stat-content">
 
                 <span>
-                  Mark your attendance
+                  Present
                 </span>
-
-              </div>
-
-              <span className="arrow">
-                →
-              </span>
-
-            </a>
-
-
-            <a
-              href="/timetable"
-              className="quick-action"
-            >
-
-              <div className="quick-icon purple">
-                ▦
-              </div>
-
-              <div>
 
                 <strong>
-                  View Timetable
+                  {presentCount}
                 </strong>
 
+                <small>
+                  Classes attended
+                </small>
+
+              </div>
+
+            </div>
+
+
+            <div className="stat-card">
+
+              <div className="stat-icon red">
+                !
+              </div>
+
+              <div className="stat-content">
+
                 <span>
-                  Check your classes
+                  Absent
                 </span>
-
-              </div>
-
-              <span className="arrow">
-                →
-              </span>
-
-            </a>
-
-
-            <a
-              href="/correction"
-              className="quick-action"
-            >
-
-              <div className="quick-icon orange">
-                ✎
-              </div>
-
-              <div>
 
                 <strong>
-                  Request Correction
+                  {absentCount}
                 </strong>
 
-                <span>
-                  Report attendance issue
-                </span>
+                <small>
+                  Classes missed
+                </small>
 
               </div>
 
-              <span className="arrow">
-                →
-              </span>
-
-            </a>
-
-          </div>
-
-        </div>
-
-      </section>
+            </div>
 
 
-      {/* ================= BOTTOM GRID ================= */}
+            <div className="stat-card">
 
-      <section className="dashboard-grid">
+              <div className="stat-icon orange">
+                ⏱
+              </div>
 
-        {/* ================= TODAY'S CLASSES ================= */}
+              <div className="stat-content">
 
-        <div className="dashboard-card">
+                <span>
+                  Corrections
+                </span>
 
-          <div className="card-header">
+                <strong>
+                  {pendingCorrections}
+                </strong>
 
-            <div>
+                <small>
+                  Pending requests
+                </small>
 
-              <h2>
-                Today's Classes
-              </h2>
-
-              <p>
-                Your scheduled classes today
-              </p>
+              </div>
 
             </div>
 
-            <a
-              href="/timetable"
-              className="view-link"
-            >
-              View All
-            </a>
-
-          </div>
+          </section>
 
 
-          <div className="empty-state">
+          {/* ================= MAIN GRID ================= */}
 
-            <div className="empty-icon">
-              ▦
+          <section className="dashboard-grid">
+
+            {/* ================= ATTENDANCE OVERVIEW ================= */}
+
+            <div className="dashboard-card attendance-card">
+
+              <div className="card-header">
+
+                <div>
+
+                  <h2>
+                    Attendance Overview
+                  </h2>
+
+                  <p>
+                    Your attendance performance
+                  </p>
+
+                </div>
+
+                <select className="period-select">
+
+                  <option>
+                    All Records
+                  </option>
+
+                </select>
+
+              </div>
+
+
+              <div className="attendance-placeholder">
+
+                <div className="circle-progress">
+
+                  <div className="circle-inner">
+
+                    <strong>
+                      {attendanceRate}%
+                    </strong>
+
+                    <span>
+                      Attendance
+                    </span>
+
+                  </div>
+
+                </div>
+
+
+                <div className="attendance-legend">
+
+                  <div>
+
+                    <span className="legend-dot present"></span>
+
+                    Present
+
+                    <strong>
+                      {presentCount}
+                    </strong>
+
+                  </div>
+
+
+                  <div>
+
+                    <span className="legend-dot absent"></span>
+
+                    Absent
+
+                    <strong>
+                      {absentCount}
+                    </strong>
+
+                  </div>
+
+                </div>
+
+              </div>
+
             </div>
 
-            <h3>
-              No classes displayed
-            </h3>
 
-            <p>
-              Your timetable information will appear here.
-            </p>
+            {/* ================= QUICK ACTIONS ================= */}
 
-          </div>
+            <div className="dashboard-card">
 
-        </div>
+              <div className="card-header">
+
+                <div>
+
+                  <h2>
+                    Quick Actions
+                  </h2>
+
+                  <p>
+                    Frequently used actions
+                  </p>
+
+                </div>
+
+              </div>
 
 
-        {/* ================= RECENT ATTENDANCE ================= */}
+              <div className="quick-actions">
 
-        <div className="dashboard-card">
+                <Link
+                  to="/qrscanner"
+                  className="quick-action"
+                >
 
-          <div className="card-header">
+                  <div className="quick-icon blue">
+                    ▣
+                  </div>
 
-            <div>
+                  <div>
 
-              <h2>
-                Recent Attendance
-              </h2>
+                    <strong>
+                      Scan QR
+                    </strong>
 
-              <p>
-                Your latest attendance records
-              </p>
+                    <span>
+                      Mark your attendance
+                    </span>
+
+                  </div>
+
+                  <span className="arrow">
+                    →
+                  </span>
+
+                </Link>
+
+
+                <Link
+                  to="/timetable"
+                  className="quick-action"
+                >
+
+                  <div className="quick-icon purple">
+                    ▦
+                  </div>
+
+                  <div>
+
+                    <strong>
+                      View Timetable
+                    </strong>
+
+                    <span>
+                      Check your classes
+                    </span>
+
+                  </div>
+
+                  <span className="arrow">
+                    →
+                  </span>
+
+                </Link>
+
+
+                <Link
+                  to="/correction"
+                  className="quick-action"
+                >
+
+                  <div className="quick-icon orange">
+                    ✎
+                  </div>
+
+                  <div>
+
+                    <strong>
+                      Request Correction
+                    </strong>
+
+                    <span>
+                      Report attendance issue
+                    </span>
+
+                  </div>
+
+                  <span className="arrow">
+                    →
+                  </span>
+
+                </Link>
+
+              </div>
 
             </div>
 
-            <a
-              href="/history"
-              className="view-link"
-            >
-              View All
-            </a>
-
-          </div>
+          </section>
 
 
-          <div className="empty-state">
+          {/* ================= BOTTOM GRID ================= */}
 
-            <div className="empty-icon">
-              ◷
+          <section className="dashboard-grid">
+
+            {/* ================= TODAY'S CLASSES ================= */}
+
+            <div className="dashboard-card">
+
+              <div className="card-header">
+
+                <div>
+
+                  <h2>
+                    Today's Classes
+                  </h2>
+
+                  <p>
+                    Your scheduled classes today
+                  </p>
+
+                </div>
+
+                <Link
+                  to="/timetable"
+                  className="view-link"
+                >
+                  View All
+                </Link>
+
+              </div>
+
+
+              {todaysClasses.length > 0 ? (
+                <div className="quick-actions">
+
+                  {todaysClasses.map((item) => (
+
+                    <div
+                      className="quick-action"
+                      key={item.slot_id}
+                    >
+
+                      <div className="quick-icon purple">
+                        ▦
+                      </div>
+
+                      <div>
+
+                        <strong>
+                          {item.course_name}
+                        </strong>
+
+                        <span>
+                          {item.section_name} •{" "}
+                          {item.room_name}
+                        </span>
+
+                        <span>
+                          {formatTime(item.start_time)}
+                          {" - "}
+                          {formatTime(item.end_time)}
+                        </span>
+
+                      </div>
+
+                    </div>
+
+                  ))}
+
+                </div>
+              ) : (
+                <div className="empty-state">
+
+                  <div className="empty-icon">
+                    ▦
+                  </div>
+
+                  <h3>
+                    No classes today
+                  </h3>
+
+                  <p>
+                    You have no scheduled classes today.
+                  </p>
+
+                </div>
+              )}
+
             </div>
 
-            <h3>
-              No attendance records
-            </h3>
 
-            <p>
-              Recent attendance records will appear here.
-            </p>
+            {/* ================= RECENT ATTENDANCE ================= */}
 
-          </div>
+            <div className="dashboard-card">
 
-        </div>
+              <div className="card-header">
 
-      </section>
+                <div>
+
+                  <h2>
+                    Recent Attendance
+                  </h2>
+
+                  <p>
+                    Your latest attendance records
+                  </p>
+
+                </div>
+
+                <Link
+                  to="/history"
+                  className="view-link"
+                >
+                  View All
+                </Link>
+
+              </div>
+
+
+              {recentAttendance.length > 0 ? (
+                <div className="quick-actions">
+
+                  {recentAttendance.map((item) => (
+
+                    <div
+                      className="quick-action"
+                      key={item.attendance_id}
+                    >
+
+                      <div className="quick-icon blue">
+                        ◷
+                      </div>
+
+                      <div>
+
+                        <strong>
+                          {item.course_name}
+                        </strong>
+
+                        <span>
+                          {item.session_date}
+                        </span>
+
+                      </div>
+
+                      <span
+                        className={`status-badge ${
+                          item.attendance_status?.toLowerCase()
+                        }`}
+                      >
+                        {getStatusLabel(
+                          item.attendance_status
+                        )}
+                      </span>
+
+                    </div>
+
+                  ))}
+
+                </div>
+              ) : (
+                <div className="empty-state">
+
+                  <div className="empty-icon">
+                    ◷
+                  </div>
+
+                  <h3>
+                    No attendance records
+                  </h3>
+
+                  <p>
+                    Recent attendance records will appear here.
+                  </p>
+
+                </div>
+              )}
+
+            </div>
+
+          </section>
+
+        </>
+      )}
 
     </main>
   );

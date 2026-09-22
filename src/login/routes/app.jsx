@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// Login
+// ================= LOGIN =================
 import Login from "../components/login";
+
+// ================= PROTECTED ROUTE =================
+import ProtectedRoute from "./protectedRoute";
 
 // ================= STUDENT =================
 import StudentLayout from "../student/studentLayout";
-
 import Home from "../student/home/home";
 import StudentTimetable from "../student/timetable/timetable";
 import QRScanner from "../student/QR/qrscanner";
@@ -25,7 +27,7 @@ import AdminLayout from "../admin/adminLayout";
 import AdminDashboard from "../admin/dashboard/dashboard";
 import Management from "../admin/management/management";
 import AdminTimetable from "../admin/timetable/timetable";
-import ReportApproval from "../admin/reportApproval/reportApproval";
+import Reports from "../admin/report/report";
 
 // ================= AUDITOR =================
 import AuditorLayout from "../auditor/auditorLayout";
@@ -36,92 +38,73 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+
         {/* ================= LOGIN ================= */}
         <Route path="/" element={<Login />} />
 
+
         {/* ================= STUDENT ================= */}
-        <Route element={<StudentLayout />}>
+        <Route
+          element={
+            <ProtectedRoute allowedRoles={["student"]}>
+              <StudentLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/home" element={<Home />} />
-          <Route
-            path="/timetable"
-            element={<StudentTimetable />}
-          />
-          <Route
-            path="/qrscanner"
-            element={<QRScanner />}
-          />
+          <Route path="/timetable" element={<StudentTimetable />} />
+          <Route path="/qrscanner" element={<QRScanner />} />
           <Route path="/history" element={<History />} />
-          <Route
-            path="/correction"
-            element={<Correction />}
-          />
-          <Route
-            path="/corrections"
-            element={<MyCorrections />}
-          />
+          <Route path="/correction" element={<Correction />} />
+          <Route path="/corrections" element={<MyCorrections />} />
         </Route>
+
 
         {/* ================= LECTURER / TA ================= */}
         <Route
           path="/lecturer"
-          element={<LecturerLayout />}
+          element={
+            <ProtectedRoute allowedRoles={["lecturer", "ta"]}>
+              <LecturerLayout />
+            </ProtectedRoute>
+          }
         >
           <Route index element={<OpenSession />} />
-
-          <Route
-            path="showqr"
-            element={<ShowQR />}
-          />
-
-          <Route
-            path="roster"
-            element={<Roster />}
-          />
-
-          <Route
-            path="corrections"
-            element={<PendingCorrections />}
-          />
+          <Route path="showqr" element={<ShowQR />} />
+          <Route path="roster" element={<Roster />} />
+          <Route path="corrections" element={<PendingCorrections />} />
         </Route>
+
 
         {/* ================= ADMIN ================= */}
         <Route
           path="/admin"
-          element={<AdminLayout />}
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
         >
           <Route index element={<AdminDashboard />} />
-
-          <Route
-            path="management"
-            element={<Management />}
-          />
-
-          <Route
-            path="timetable"
-            element={<AdminTimetable />}
-          />
-
-          <Route
-            path="report-approval"
-            element={<ReportApproval />}
-          />
+          <Route path="management" element={<Management />} />
+          <Route path="timetable" element={<AdminTimetable />} />
+          <Route path="reports" element={<Reports />} />
         </Route>
+
 
         {/* ================= AUDITOR ================= */}
         <Route
           path="/auditor"
-          element={<AuditorLayout />}
+          element={
+            <ProtectedRoute allowedRoles={["auditor"]}>
+              <AuditorLayout />
+            </ProtectedRoute>
+          }
         >
-          <Route
-            index
-            element={<AuditorDashboard />}
-          />
-
-          <Route
-            path="history"
-            element={<AuditorHistory />}
-          />
+          <Route index element={<AuditorDashboard />} />
+          <Route path="history" element={<AuditorHistory />} />
         </Route>
+
       </Routes>
     </BrowserRouter>
   );

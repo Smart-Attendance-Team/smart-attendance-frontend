@@ -1,12 +1,8 @@
 import { useState } from "react";
 import api from "../../../api/axios";
-
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import "./report.css";
 
 function Reports() {
-  const token = localStorage.getItem("token");
-
   const [courseCode, setCourseCode] = useState("");
   const [sectionId, setSectionId] = useState("");
   const [staffId, setStaffId] = useState("");
@@ -15,631 +11,635 @@ function Reports() {
   const [to, setTo] = useState("");
 
   const [report, setReport] = useState(null);
-  const [message, setMessage] = useState("");
 
-  // =========================
+  const [loading, setLoading] = useState(false);
+  const [csvLoading, setCsvLoading] = useState(false);
+
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
+
+  // =====================================================
+  // Report Parameters
+  // =====================================================
+
+  function getReportParams() {
+    return {
+      course_code: courseCode || undefined,
+      section_id: sectionId || undefined,
+      staff_id: staffId || undefined,
+      student_code: studentCode || undefined,
+      from: from || undefined,
+      to: to || undefined,
+    };
+  }
+
+  // =====================================================
   // Search Report
-  // =========================
-  async function handleSearch(e) {
-    e.preventDefault();
+  // =====================================================
+
+  async function handleSearch(event) {
+    event.preventDefault();
 
     setMessage("");
+    setMessageType("");
+
+    if (from && to && from > to) {
+      setMessage("The From date must be before the To date.");
+      setMessageType("error");
+      return;
+    }
 
     try {
-      const response = await api.get("/reports/attendance", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      setLoading(true);
 
-        params: {
-          course_code: courseCode || undefined,
-          section_id: sectionId || undefined,
-          staff_id: staffId || undefined,
-          student_code: studentCode || undefined,
-          from: from || undefined,
-          to: to || undefined,
-        },
+      const response = await api.get("/reports/attendance", {
+        params: getReportParams(),
       });
 
-      console.log("Report:", response.data);
+      console.log("Attendance Report:", response.data);
 
       setReport(response.data);
 
       if (
-        !response.data.rows ||
+        !response.data?.rows ||
         response.data.rows.length === 0
       ) {
         setMessage("No attendance records found.");
+        setMessageType("info");
+      } else {
+        setMessage("Report loaded successfully.");
+        setMessageType("success");
       }
     } catch (error) {
-      console.log("Report error:", error);
-      console.log("Response:", error.response);
-      console.log("Data:", error.response?.data);
+      console.error("Report Error:", error);
+      console.error("Response:", error.response);
+
+      setReport(null);
 
       setMessage(
         error.response?.data?.error ||
           error.response?.data?.message ||
-          "Failed to load report."
+          "Failed to load attendance report."
       );
+
+      setMessageType("error");
+    } finally {
+      setLoading(false);
     }
   }
 
-  // =========================
+  // =====================================================
+  // Clear Filters
+  // =====================================================
+
+  function handleClearFilters() {
+    setCourseCode("");
+    setSectionId("");
+    setStaffId("");
+    setStudentCode("");
+    setFrom("");
+    setTo("");
+
+    setReport(null);
+
+    setMessage("");
+    setMessageType("");
+  }
+
+  // =====================================================
   // Export CSV
-  // =========================
+  // =====================================================
+
   async function handleExportCSV() {
+    setMessage("");
+    setMessageType("");
+
     try {
+      setCsvLoading(true);
+
       const response = await api.get(
         "/reports/attendance/export",
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-
           params: {
             format: "csv",
-            course_code: courseCode || undefined,
-            section_id: sectionId || undefined,
-            staff_id: staffId || undefined,
-            student_code: studentCode || undefined,
-            from: from || undefined,
-            to: to || undefined,
+            ...getReportParams(),
           },
-
           responseType: "blob",
         }
       );
 
-      const url = window.URL.createObjectURL(
-        new Blob([response.data], {
-          type: "text/csv",
-        })
-      );
+      const blob = new Blob([response.data], {
+        type: "text/csv",
+      });
+
+      const url = window.URL.createObjectURL(blob);
 
       const link = document.createElement("a");
 
       link.href = url;
-
-      link.setAttribute(
-        "download",
-        "attendance-report.csv"
-      );
+      link.download = "attendance-report.csv";
 
       document.body.appendChild(link);
 
       link.click();
 
-      link.remove();
+      document.body.removeChild(link);
 
       window.URL.revokeObjectURL(url);
+
+      setMessage("CSV report exported successfully.");
+      setMessageType("success");
     } catch (error) {
-      console.log("CSV Export error:", error);
-      console.log("Response:", error.response);
+      console.error("CSV Export Error:", error);
+      console.error("Response:", error.response);
 
       setMessage("Failed to export CSV report.");
+      setMessageType("error");
+    } finally {
+      setCsvLoading(false);
     }
   }
 
-  // =========================
-  // Export PDF
-  // =========================
-  function handleExportPDF() {
-    setMessage("");
+  // =====================================================
+  // Summary
+  // =====================================================
 
-    if (
-      !report ||
-      !Array.isArray(report.rows) ||
-      report.rows.length === 0
-    ) {
-      setMessage(
-        "Search for a report before exporting PDF."
-      );
+  const summary = report?.summary || {};
 
-      return;
-    }
+  const total = summary.total ?? 0;
+  const present = summary.present ?? 0;
+  const late = summary.late ?? 0;
+  const excused = summary.excused ?? 0;
+  const absent = summary.absent ?? 0;
 
-    try {
-      console.log("Starting PDF export...");
+  const attendanceRate =
+    summary.attendance_rate_percent ?? 0;
 
-      // Create PDF
-      const doc = new jsPDF({
-        orientation: "landscape",
-        unit: "mm",
-        format: "a4",
-      });
+  const lateRate =
+    summary.late_rate_percent ?? 0;
 
-      // =========================
-      // Title
-      // =========================
-      doc.setFontSize(18);
-
-      doc.text(
-        "Attendance Report",
-        14,
-        15
-      );
-
-      // =========================
-      // Filters
-      // =========================
-      doc.setFontSize(9);
-
-      const filters = [];
-
-      if (courseCode) {
-        filters.push(`Course: ${courseCode}`);
-      }
-
-      if (sectionId) {
-        filters.push(`Section: ${sectionId}`);
-      }
-
-      if (staffId) {
-        filters.push(`Staff: ${staffId}`);
-      }
-
-      if (studentCode) {
-        filters.push(`Student: ${studentCode}`);
-      }
-
-      if (from) {
-        filters.push(`From: ${from}`);
-      }
-
-      if (to) {
-        filters.push(`To: ${to}`);
-      }
-
-      const filterText =
-        filters.length > 0
-          ? `Filters: ${filters.join(" | ")}`
-          : "Filters: All";
-
-      doc.text(
-        filterText,
-        14,
-        22
-      );
-
-      // =========================
-      // Summary
-      // =========================
-      if (report.summary) {
-        doc.setFontSize(11);
-
-        doc.text(
-          "Summary",
-          14,
-          31
-        );
-
-        doc.setFontSize(9);
-
-        const summaryText =
-          `Total: ${report.summary.total}    ` +
-          `Present: ${report.summary.present}    ` +
-          `Late: ${report.summary.late}    ` +
-          `Excused: ${report.summary.excused}    ` +
-          `Absent: ${report.summary.absent}    ` +
-          `Attendance Rate: ${report.summary.attendance_rate_percent}%    ` +
-          `Late Rate: ${report.summary.late_rate_percent}%`;
-
-        doc.text(
-          summaryText,
-          14,
-          37
-        );
-      }
-
-      // =========================
-      // Table Data
-      // =========================
-      const tableRows = report.rows.map((item) => [
-        item.course_code || "-",
-        item.course_name || "-",
-        item.section_name || "-",
-        item.session_date || "-",
-        item.student_code || "-",
-        item.student_name || "-",
-        item.attendance_status || "-",
-        item.minutes_late ?? 0,
-        item.source || "-",
-      ]);
-
-      console.log(
-        "PDF table rows:",
-        tableRows
-      );
-
-      // =========================
-      // Create Table
-      // =========================
-      autoTable(doc, {
-        startY: 44,
-
-        head: [
-          [
-            "Course",
-            "Course Name",
-            "Section",
-            "Date",
-            "Student Code",
-            "Student Name",
-            "Status",
-            "Late",
-            "Source",
-          ],
-        ],
-
-        body: tableRows,
-
-        theme: "grid",
-
-        styles: {
-          fontSize: 7,
-          cellPadding: 2,
-          overflow: "linebreak",
-        },
-
-        headStyles: {
-          fontSize: 7,
-        },
-
-        columnStyles: {
-          0: {
-            cellWidth: 20,
-          },
-
-          1: {
-            cellWidth: 38,
-          },
-
-          2: {
-            cellWidth: 25,
-          },
-
-          3: {
-            cellWidth: 25,
-          },
-
-          4: {
-            cellWidth: 25,
-          },
-
-          5: {
-            cellWidth: 40,
-          },
-
-          6: {
-            cellWidth: 25,
-          },
-
-          7: {
-            cellWidth: 15,
-          },
-
-          8: {
-            cellWidth: 20,
-          },
-        },
-
-        margin: {
-          top: 44,
-          left: 10,
-          right: 10,
-          bottom: 15,
-        },
-      });
-
-      // =========================
-      // Page Numbers
-      // =========================
-      const pageCount =
-        doc.internal.getNumberOfPages();
-
-      for (
-        let i = 1;
-        i <= pageCount;
-        i++
-      ) {
-        doc.setPage(i);
-
-        doc.setFontSize(8);
-
-        doc.text(
-          `Page ${i} of ${pageCount}`,
-          260,
-          200
-        );
-      }
-
-      // =========================
-      // Save PDF
-      // =========================
-      doc.save(
-        "attendance-report.pdf"
-      );
-
-      console.log(
-        "PDF exported successfully."
-      );
-
-      setMessage(
-        "PDF report exported successfully."
-      );
-    } catch (error) {
-      console.error(
-        "PDF Export Error:",
-        error
-      );
-
-      setMessage(
-        "Failed to export PDF report. Check the browser console."
-      );
-    }
-  }
+  // =====================================================
+  // Render
+  // =====================================================
 
   return (
-    <div>
-      <h1>Attendance Reports</h1>
+    <section className="reports-content">
+
+      {/* =================================================
+          HEADER
+      ================================================= */}
+
+      <div className="reports-page-header">
+
+        <div>
+          <span className="reports-small-title">
+            ADMINISTRATION
+          </span>
+
+          <h1>Attendance Reports</h1>
+
+          <p>
+            Search and review attendance records using
+            the available filters.
+          </p>
+        </div>
+
+      </div>
+
+
+      {/* =================================================
+          MESSAGE
+      ================================================= */}
 
       {message && (
-        <p>{message}</p>
+        <div
+          className={`reports-message ${messageType}`}
+        >
+          {message}
+        </div>
       )}
 
-      <hr />
 
-      <h2>Filters</h2>
+      {/* =================================================
+          FILTERS
+      ================================================= */}
 
-      <form onSubmit={handleSearch}>
-        <div>
-          <label>Course Code</label>
-          <br />
+      <section className="reports-card">
 
-          <input
-            type="text"
-            placeholder="CS101"
-            value={courseCode}
-            onChange={(e) =>
-              setCourseCode(e.target.value)
-            }
-          />
-        </div>
+        <div className="reports-section-header">
 
-        <br />
-
-        <div>
-          <label>Section ID</label>
-          <br />
-
-          <input
-            type="number"
-            placeholder="1"
-            value={sectionId}
-            onChange={(e) =>
-              setSectionId(e.target.value)
-            }
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>Staff ID</label>
-          <br />
-
-          <input
-            type="number"
-            placeholder="1"
-            value={staffId}
-            onChange={(e) =>
-              setStaffId(e.target.value)
-            }
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>Student Code</label>
-          <br />
-
-          <input
-            type="text"
-            placeholder="S1001"
-            value={studentCode}
-            onChange={(e) =>
-              setStudentCode(e.target.value)
-            }
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>From</label>
-          <br />
-
-          <input
-            type="date"
-            value={from}
-            onChange={(e) =>
-              setFrom(e.target.value)
-            }
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>To</label>
-          <br />
-
-          <input
-            type="date"
-            value={to}
-            onChange={(e) =>
-              setTo(e.target.value)
-            }
-          />
-        </div>
-
-        <br />
-
-        <button type="submit">
-          Search
-        </button>
-
-        {" "}
-
-        <button
-          type="button"
-          onClick={handleExportCSV}
-        >
-          Export CSV
-        </button>
-
-        {" "}
-
-        <button
-          type="button"
-          onClick={handleExportPDF}
-        >
-          Export PDF
-        </button>
-      </form>
-
-      <hr />
-
-      {/* =========================
-          Summary
-      ========================= */}
-
-      {report &&
-        report.summary && (
           <div>
-            <h2>Summary</h2>
+            <h2>Report Filters</h2>
 
             <p>
-              Total:{" "}
-              {report.summary.total}
+              Choose the filters you want to apply.
             </p>
+          </div>
 
-            <p>
-              Present:{" "}
-              {report.summary.present}
-            </p>
+        </div>
 
-            <p>
-              Late:{" "}
-              {report.summary.late}
-            </p>
 
-            <p>
-              Excused:{" "}
-              {report.summary.excused}
-            </p>
+        <form
+          className="reports-filter-grid"
+          onSubmit={handleSearch}
+        >
 
-            <p>
-              Absent:{" "}
-              {report.summary.absent}
-            </p>
+          {/* Course */}
 
-            <p>
-              Attendance Rate:{" "}
-              {
-                report.summary
-                  .attendance_rate_percent
+          <div className="reports-form-group">
+
+            <label>
+              Course Code
+            </label>
+
+            <input
+              type="text"
+              placeholder="CS101"
+              value={courseCode}
+              onChange={(event) =>
+                setCourseCode(event.target.value)
               }
-              %
-            </p>
+            />
+
+          </div>
+
+
+          {/* Section */}
+
+          <div className="reports-form-group">
+
+            <label>
+              Section ID
+            </label>
+
+            <input
+              type="number"
+              placeholder="1"
+              value={sectionId}
+              onChange={(event) =>
+                setSectionId(event.target.value)
+              }
+            />
+
+          </div>
+
+
+          {/* Staff */}
+
+          <div className="reports-form-group">
+
+            <label>
+              Staff ID
+            </label>
+
+            <input
+              type="number"
+              placeholder="1"
+              value={staffId}
+              onChange={(event) =>
+                setStaffId(event.target.value)
+              }
+            />
+
+          </div>
+
+
+          {/* Student */}
+
+          <div className="reports-form-group">
+
+            <label>
+              Student Code
+            </label>
+
+            <input
+              type="text"
+              placeholder="S1001"
+              value={studentCode}
+              onChange={(event) =>
+                setStudentCode(event.target.value)
+              }
+            />
+
+          </div>
+
+
+          {/* From */}
+
+          <div className="reports-form-group">
+
+            <label>
+              From
+            </label>
+
+            <input
+              type="date"
+              value={from}
+              onChange={(event) =>
+                setFrom(event.target.value)
+              }
+            />
+
+          </div>
+
+
+          {/* To */}
+
+          <div className="reports-form-group">
+
+            <label>
+              To
+            </label>
+
+            <input
+              type="date"
+              value={to}
+              onChange={(event) =>
+                setTo(event.target.value)
+              }
+            />
+
+          </div>
+
+
+          {/* Buttons */}
+
+          <div className="reports-filter-actions">
+
+            <button
+              type="submit"
+              className="reports-search-button"
+              disabled={loading}
+            >
+              {loading
+                ? "Searching..."
+                : "Search Report"}
+            </button>
+
+
+            <button
+              type="button"
+              className="reports-clear-button"
+              onClick={handleClearFilters}
+            >
+              Clear
+            </button>
+
+          </div>
+
+        </form>
+
+      </section>
+
+
+      {/* =================================================
+          SUMMARY
+      ================================================= */}
+
+      {report && (
+        <section className="reports-card">
+
+          <div className="reports-section-header">
+
+            <div>
+              <h2>Attendance Summary</h2>
+
+              <p>
+                Summary of attendance records matching
+                the selected filters.
+              </p>
+            </div>
+
+          </div>
+
+
+          <div className="reports-summary-grid">
+
+            <div className="summary-stat">
+              <span>Total Attendance</span>
+              <strong>{total}</strong>
+            </div>
+
+
+            <div className="summary-stat">
+              <span>Present</span>
+              <strong>{present}</strong>
+            </div>
+
+
+            <div className="summary-stat">
+              <span>Late</span>
+              <strong>{late}</strong>
+            </div>
+
+
+            <div className="summary-stat">
+              <span>Excused</span>
+              <strong>{excused}</strong>
+            </div>
+
+
+            <div className="summary-stat">
+              <span>Absent</span>
+              <strong>{absent}</strong>
+            </div>
+
+
+            <div className="summary-stat summary-highlight">
+              <span>Attendance Rate</span>
+
+              <strong>
+                {attendanceRate}%
+              </strong>
+            </div>
+
+
+            <div className="summary-stat">
+              <span>Late Rate</span>
+
+              <strong>
+                {lateRate}%
+              </strong>
+            </div>
+
+          </div>
+
+        </section>
+      )}
+
+
+      {/* =================================================
+          RECORDS
+      ================================================= */}
+
+      <section className="reports-card">
+
+        <div className="reports-section-header">
+
+          <div>
+            <h2>Attendance Records</h2>
 
             <p>
-              Late Rate:{" "}
-              {
-                report.summary
-                  .late_rate_percent
-              }
-              %
+              Detailed attendance records returned
+              by the report.
             </p>
+          </div>
+
+
+          {report?.rows?.length > 0 && (
+            <div className="reports-export-actions">
+
+              <button
+                type="button"
+                className="reports-csv-button"
+                onClick={handleExportCSV}
+                disabled={csvLoading}
+              >
+                {csvLoading
+                  ? "Exporting..."
+                  : "Export CSV"}
+              </button>
+
+            </div>
+          )}
+
+        </div>
+
+
+        {/* =================================================
+            NO REPORT
+        ================================================= */}
+
+        {!report && (
+          <div className="reports-empty">
+
+            <span>▤</span>
+
+            <h3>
+              No report loaded
+            </h3>
+
+            <p>
+              Use the filters above and search to
+              generate an attendance report.
+            </p>
+
           </div>
         )}
 
-      <hr />
 
-      <h2>Attendance Report</h2>
+        {/* =================================================
+            TABLE
+        ================================================= */}
 
-      {report &&
-      report.rows &&
-      report.rows.length > 0 ? (
-        <table
-          border="1"
-          cellPadding="8"
-        >
-          <thead>
-            <tr>
-              <th>Course</th>
-              <th>Course Name</th>
-              <th>Section</th>
-              <th>Date</th>
-              <th>Student Code</th>
-              <th>Student Name</th>
-              <th>Status</th>
-              <th>Minutes Late</th>
-              <th>Source</th>
-            </tr>
-          </thead>
+        {report?.rows?.length > 0 && (
+          <div className="reports-table-wrapper">
 
-          <tbody>
-            {report.rows.map(
-              (item, index) => (
-                <tr key={index}>
-                  <td>
-                    {item.course_code}
-                  </td>
+            <table className="reports-table">
 
-                  <td>
-                    {item.course_name}
-                  </td>
+              <thead>
 
-                  <td>
-                    {item.section_name}
-                  </td>
-
-                  <td>
-                    {item.session_date}
-                  </td>
-
-                  <td>
-                    {item.student_code}
-                  </td>
-
-                  <td>
-                    {item.student_name}
-                  </td>
-
-                  <td>
-                    {item.attendance_status}
-                  </td>
-
-                  <td>
-                    {item.minutes_late}
-                  </td>
-
-                  <td>
-                    {item.source}
-                  </td>
+                <tr>
+                  <th>Course</th>
+                  <th>Course Name</th>
+                  <th>Section</th>
+                  <th>Date</th>
+                  <th>Student Code</th>
+                  <th>Student Name</th>
+                  <th>Status</th>
+                  <th>Minutes Late</th>
+                  <th>Source</th>
                 </tr>
-              )
-            )}
-          </tbody>
-        </table>
-      ) : (
-        <p>
-          No data to display.
-        </p>
-      )}
-    </div>
+
+              </thead>
+
+
+              <tbody>
+
+                {report.rows.map(
+                  (item, index) => (
+                    <tr key={index}>
+
+                      <td className="report-course-code">
+                        {item.course_code || "-"}
+                      </td>
+
+                      <td>
+                        {item.course_name || "-"}
+                      </td>
+
+                      <td>
+                        {item.section_name || "-"}
+                      </td>
+
+                      <td>
+                        {item.session_date || "-"}
+                      </td>
+
+                      <td>
+                        {item.student_code || "-"}
+                      </td>
+
+                      <td>
+                        {item.student_name || "-"}
+                      </td>
+
+                      <td>
+
+                        <span
+                          className={`attendance-status status-${item.attendance_status}`}
+                        >
+                          {item.attendance_status || "-"}
+                        </span>
+
+                      </td>
+
+                      <td>
+                        {item.minutes_late ?? 0}
+                      </td>
+
+                      <td>
+                        {item.source || "-"}
+                      </td>
+
+                    </tr>
+                  )
+                )}
+
+              </tbody>
+
+            </table>
+
+          </div>
+        )}
+
+
+        {/* =================================================
+            EMPTY RESULTS
+        ================================================= */}
+
+        {report &&
+          (!report.rows ||
+            report.rows.length === 0) && (
+            <div className="reports-empty">
+
+              <span>▤</span>
+
+              <h3>
+                No attendance records
+              </h3>
+
+              <p>
+                No records match the selected
+                filters.
+              </p>
+
+            </div>
+          )}
+
+      </section>
+
+    </section>
   );
 }
 

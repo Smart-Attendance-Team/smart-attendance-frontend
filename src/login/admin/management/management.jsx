@@ -3,108 +3,180 @@ import api from "../../../api/axios";
 import "./management.css";
 
 function Management() {
-  const token = localStorage.getItem("token");
-
   // =========================
-  // Data
+  // DATA
   // =========================
+  const [departments, setDepartments] = useState([]);
   const [courses, setCourses] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [sections, setSections] = useState([]);
+  const [students, setStudents] = useState([]);
   const [staff, setStaff] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
 
   // =========================
-  // Course
+  // GENERAL MESSAGE
+  // =========================
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // =========================
+  // DEPARTMENT FORM
+  // =========================
+  const [departmentName, setDepartmentName] = useState("");
+
+  // =========================
+  // COURSE FORM
   // =========================
   const [courseCode, setCourseCode] = useState("");
   const [courseName, setCourseName] = useState("");
+  const [courseDepartmentId, setCourseDepartmentId] = useState("");
 
   // =========================
-  // Room
+  // ROOM FORM
   // =========================
-  const [roomCode, setRoomCode] = useState("");
   const [roomName, setRoomName] = useState("");
-  const [capacity, setCapacity] = useState("");
+  const [building, setBuilding] = useState("");
+  const [roomType, setRoomType] = useState("lecture");
+  const [roomCapacity, setRoomCapacity] = useState("");
 
   // =========================
-  // Section
+  // SECTION FORM
   // =========================
   const [sectionName, setSectionName] = useState("");
-  const [courseId, setCourseId] = useState("");
+  const [sectionCourseId, setSectionCourseId] = useState("");
+  const [sectionSemester, setSectionSemester] = useState("");
+  const [sectionCapacity, setSectionCapacity] = useState("");
 
   // =========================
-  // Enrollment
+  // STUDENT FORM
   // =========================
-  const [studentId, setStudentId] = useState("");
-  const [enrollmentSectionId, setEnrollmentSectionId] =
-    useState("");
+  const [studentEmail, setStudentEmail] = useState("");
+  const [studentPassword, setStudentPassword] = useState("");
+  const [studentCode, setStudentCode] = useState("");
+  const [studentName, setStudentName] = useState("");
+  const [studentLevel, setStudentLevel] = useState("");
+  const [studentDepartmentId, setStudentDepartmentId] = useState("");
 
   // =========================
-  // Teaching Staff
+  // ENROLLMENT FORM
+  // =========================
+  const [enrollmentStudentId, setEnrollmentStudentId] = useState("");
+  const [enrollmentSectionId, setEnrollmentSectionId] = useState("");
+
+  // =========================
+  // STAFF FORM
   // =========================
   const [staffName, setStaffName] = useState("");
   const [staffEmail, setStaffEmail] = useState("");
-  const [staffRole, setStaffRole] = useState("lecturer");
+  const [staffPassword, setStaffPassword] = useState("");
+  const [staffType, setStaffType] = useState("lecturer");
+  const [staffDepartmentId, setStaffDepartmentId] = useState("");
 
   // =========================
-  // CSV Import
+  // ASSIGN STAFF FORM
+  // =========================
+  const [assignSectionId, setAssignSectionId] = useState("");
+  const [assignStaffId, setAssignStaffId] = useState("");
+  const [assignStaffRole, setAssignStaffRole] = useState("lecturer");
+
+  // =========================
+  // CSV IMPORT
   // =========================
   const [csvFile, setCsvFile] = useState(null);
-  const [defaultPassword, setDefaultPassword] = useState("");
+  const [defaultPassword, setDefaultPassword] = useState("Student@123");
   const [importSectionId, setImportSectionId] = useState("");
-  const [importDepartmentId, setImportDepartmentId] =
-    useState("");
+  const [importDepartmentId, setImportDepartmentId] = useState("");
   const [importMessage, setImportMessage] = useState("");
   const [importResult, setImportResult] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
 
   // =========================
-  // General Message
+  // LOAD ALL DATA
   // =========================
-  const [message, setMessage] = useState("");
-
-  // =========================
-  // Load Courses / Rooms / Sections
-  // =========================
-  async function loadData() {
+  const loadData = async () => {
     try {
-      const headers = {
-        Authorization: `Bearer ${token}`,
-      };
+      setLoading(true);
+      setMessage("");
 
       const [
+        departmentsResponse,
         coursesResponse,
         roomsResponse,
         sectionsResponse,
+        studentsResponse,
+        staffResponse,
+        enrollmentsResponse,
       ] = await Promise.all([
-        api.get("/admin/courses", { headers }),
-        api.get("/admin/rooms", { headers }),
-        api.get("/admin/sections", { headers }),
+        api.get("/admin/departments"),
+        api.get("/admin/courses"),
+        api.get("/admin/rooms"),
+        api.get("/admin/sections"),
+        api.get("/admin/students"),
+        api.get("/admin/staff"),
+        api.get("/admin/enrollments"),
       ]);
+
+      const departmentsData = Array.isArray(departmentsResponse.data)
+        ? departmentsResponse.data
+        : [];
 
       const coursesData = Array.isArray(coursesResponse.data)
         ? coursesResponse.data
-        : coursesResponse.data.courses || [];
+        : [];
 
       const roomsData = Array.isArray(roomsResponse.data)
         ? roomsResponse.data
-        : roomsResponse.data.rooms || [];
+        : [];
 
-      const sectionsData = Array.isArray(
-        sectionsResponse.data
-      )
+      const sectionsData = Array.isArray(sectionsResponse.data)
         ? sectionsResponse.data
-        : sectionsResponse.data.sections || [];
+        : [];
 
-      console.log("COURSES:", coursesData);
-      console.log("ROOMS:", roomsData);
-      console.log("SECTIONS FROM BACKEND:", sectionsData);
+      const studentsData = Array.isArray(studentsResponse.data)
+        ? studentsResponse.data
+        : [];
 
+      const staffData = Array.isArray(staffResponse.data)
+        ? staffResponse.data
+        : [];
+
+      const enrollmentsData = Array.isArray(enrollmentsResponse.data)
+        ? enrollmentsResponse.data
+        : [];
+
+      setDepartments(departmentsData);
       setCourses(coursesData);
       setRooms(roomsData);
       setSections(sectionsData);
+      setStudents(studentsData);
+      setStaff(staffData);
+      setEnrollments(enrollmentsData);
+
+      // Set first department automatically
+      if (departmentsData.length > 0) {
+        const firstDepartmentId = String(
+          departmentsData[0].department_id
+        );
+
+        if (!courseDepartmentId) {
+          setCourseDepartmentId(firstDepartmentId);
+        }
+
+        if (!studentDepartmentId) {
+          setStudentDepartmentId(firstDepartmentId);
+        }
+
+        if (!staffDepartmentId) {
+          setStaffDepartmentId(firstDepartmentId);
+        }
+
+        if (!importDepartmentId) {
+          setImportDepartmentId(firstDepartmentId);
+        }
+      }
     } catch (error) {
-      console.log("Management load error:", error);
+      console.log("Management loading error:", error);
       console.log("Response:", error.response);
       console.log("Data:", error.response?.data);
 
@@ -113,545 +185,465 @@ function Management() {
           error.response?.data?.message ||
           "Failed to load management data."
       );
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  // =========================
-  // Load Teaching Staff
-  // =========================
-  async function loadStaff() {
-    try {
-      const response = await api.get("/admin/staff", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("Teaching staff:", response.data);
-
-      if (Array.isArray(response.data)) {
-        setStaff(response.data);
-      } else if (Array.isArray(response.data.staff)) {
-        setStaff(response.data.staff);
-      } else {
-        setStaff([]);
-      }
-    } catch (error) {
-      console.log("Teaching staff error:", error);
-      console.log("Response:", error.response);
-      console.log("Data:", error.response?.data);
-
-      setStaff([]);
-    }
-  }
-
-  // =========================
-  // Initial Load
-  // =========================
   useEffect(() => {
     loadData();
-    loadStaff();
   }, []);
 
   // =========================
-  // Add Course
+  // ERROR HELPER
   // =========================
-  async function handleAddCourse(e) {
+  const getErrorMessage = (error, fallback) => {
+    return (
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      fallback
+    );
+  };
+
+  // =========================
+  // ADD DEPARTMENT
+  // =========================
+  const handleAddDepartment = async (e) => {
     e.preventDefault();
-    setMessage("");
+
+    if (!departmentName.trim()) {
+      setMessage("Please enter department name.");
+      return;
+    }
 
     try {
-      const response = await api.post(
-        "/admin/courses",
-        {
-          course_code: courseCode,
-          course_name: courseName,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      setMessage("");
+
+      await api.post("/admin/departments", {
+        department_name: departmentName.trim(),
+      });
+
+      setDepartmentName("");
+      setMessage("Department created successfully.");
+
+      await loadData();
+    } catch (error) {
+      console.log("Add department error:", error);
+
+      setMessage(
+        getErrorMessage(error, "Failed to create department.")
       );
+    }
+  };
 
-      console.log("Course added:", response.data);
+  // =========================
+  // ADD COURSE
+  // =========================
+  const handleAddCourse = async (e) => {
+    e.preventDefault();
 
-      setMessage("Course added successfully.");
+    if (
+      !courseCode.trim() ||
+      !courseName.trim() ||
+      !courseDepartmentId
+    ) {
+      setMessage("Please fill all course fields.");
+      return;
+    }
+
+    try {
+      setMessage("");
+
+      await api.post("/admin/courses", {
+        course_code: courseCode.trim(),
+        course_name: courseName.trim(),
+        department_id: Number(courseDepartmentId),
+      });
 
       setCourseCode("");
       setCourseName("");
 
-      loadData();
+      setMessage("Course created successfully.");
+
+      await loadData();
     } catch (error) {
       console.log("Add course error:", error);
-      console.log("Response:", error.response);
-      console.log("Data:", error.response?.data);
 
-      setMessage(
-        error.response?.data?.error ||
-          error.response?.data?.message ||
-          "Failed to add course."
-      );
+      setMessage(getErrorMessage(error, "Failed to create course."));
     }
-  }
+  };
 
   // =========================
-  // Add Room
+  // ADD ROOM
   // =========================
-  async function handleAddRoom(e) {
+  const handleAddRoom = async (e) => {
     e.preventDefault();
-    setMessage("");
+
+    if (
+      !roomName.trim() ||
+      !roomType ||
+      !roomCapacity ||
+      !building.trim()
+    ) {
+      setMessage("Please fill all room fields.");
+      return;
+    }
 
     try {
-      const response = await api.post(
-        "/admin/rooms",
-        {
-          room_code: roomCode,
-          room_name: roomName,
-          capacity: Number(capacity),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      setMessage("");
 
-      console.log("Room added:", response.data);
+      await api.post("/admin/rooms", {
+        room_name: roomName.trim(),
+        building: building.trim(),
+        room_type: roomType,
+        capacity: Number(roomCapacity),
+      });
 
-      setMessage("Room / Lab added successfully.");
-
-      setRoomCode("");
       setRoomName("");
-      setCapacity("");
+      setBuilding("");
+      setRoomType("lecture");
+      setRoomCapacity("");
 
-      loadData();
+      setMessage("Room/Lab created successfully.");
+
+      await loadData();
     } catch (error) {
       console.log("Add room error:", error);
-      console.log("Response:", error.response);
-      console.log("Data:", error.response?.data);
 
       setMessage(
-        error.response?.data?.error ||
-          error.response?.data?.message ||
-          "Failed to add room / lab."
+        getErrorMessage(error, "Failed to create room/lab.")
       );
     }
-  }
+  };
 
   // =========================
-  // Add Section
+  // ADD SECTION
   // =========================
-  async function handleAddSection(e) {
+  const handleAddSection = async (e) => {
     e.preventDefault();
-    setMessage("");
 
-    if (!courseId) {
-      setMessage("Please select a course.");
+    if (
+      !sectionCourseId ||
+      !sectionName.trim() ||
+      !sectionSemester.trim() ||
+      !sectionCapacity
+    ) {
+      setMessage("Please fill all section fields.");
       return;
     }
 
     try {
-      const response = await api.post(
-        "/admin/sections",
-        {
-          section_name: sectionName,
-          course_id: Number(courseId),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      setMessage("");
 
-      console.log("Section added:", response.data);
-
-      setMessage("Section added successfully.");
+      await api.post("/admin/sections", {
+        course_id: Number(sectionCourseId),
+        section_name: sectionName.trim(),
+        semester: sectionSemester.trim(),
+        capacity: Number(sectionCapacity),
+      });
 
       setSectionName("");
-      setCourseId("");
+      setSectionCourseId("");
+      setSectionSemester("");
+      setSectionCapacity("");
 
-      loadData();
+      setMessage("Section created successfully.");
+
+      await loadData();
     } catch (error) {
       console.log("Add section error:", error);
-      console.log("Response:", error.response);
-      console.log("Data:", error.response?.data);
 
       setMessage(
-        error.response?.data?.error ||
-          error.response?.data?.message ||
-          "Failed to add section."
+        getErrorMessage(error, "Failed to create section.")
       );
     }
-  }
+  };
 
   // =========================
-  // Enrollment
+  // ADD STUDENT
   // =========================
-  async function handleEnrollment(e) {
+  const handleAddStudent = async (e) => {
     e.preventDefault();
-    setMessage("");
 
-    if (!studentId || !enrollmentSectionId) {
-      setMessage(
-        "Please enter Student ID and select a section."
-      );
+    if (
+      !studentEmail.trim() ||
+      !studentPassword ||
+      !studentCode.trim() ||
+      !studentName.trim() ||
+      !studentLevel ||
+      !studentDepartmentId
+    ) {
+      setMessage("Please fill all student fields.");
       return;
     }
 
     try {
-      const response = await api.post(
-        "/admin/enrollments",
-        {
-          student_id: Number(studentId),
-          section_id: Number(enrollmentSectionId),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      setMessage("");
 
-      console.log("Enrollment:", response.data);
+      await api.post("/admin/students", {
+        email: studentEmail.trim(),
+        password: studentPassword,
+        student_code: studentCode.trim(),
+        student_name: studentName.trim(),
+        level: Number(studentLevel),
+        department_id: Number(studentDepartmentId),
+      });
+
+      setStudentEmail("");
+      setStudentPassword("");
+      setStudentCode("");
+      setStudentName("");
+      setStudentLevel("");
+
+      setMessage("Student created successfully.");
+
+      await loadData();
+    } catch (error) {
+      console.log("Add student error:", error);
+
+      setMessage(
+        getErrorMessage(error, "Failed to create student.")
+      );
+    }
+  };
+
+  // =========================
+  // ENROLL STUDENT
+  // =========================
+  const handleEnrollment = async (e) => {
+    e.preventDefault();
+
+    if (!enrollmentStudentId || !enrollmentSectionId) {
+      setMessage("Please select student and section.");
+      return;
+    }
+
+    try {
+      setMessage("");
+
+      await api.post("/admin/enrollments", {
+        student_id: Number(enrollmentStudentId),
+        section_id: Number(enrollmentSectionId),
+      });
+
+      setEnrollmentStudentId("");
+      setEnrollmentSectionId("");
 
       setMessage("Student enrolled successfully.");
 
-      setStudentId("");
-      setEnrollmentSectionId("");
+      await loadData();
     } catch (error) {
       console.log("Enrollment error:", error);
-      console.log("Response:", error.response);
-      console.log("Data:", error.response?.data);
 
       setMessage(
-        error.response?.data?.error ||
-          error.response?.data?.message ||
-          "Failed to enroll student."
+        getErrorMessage(error, "Failed to enroll student.")
       );
     }
-  }
+  };
 
   // =========================
-  // Add Teaching Staff
+  // ADD STAFF
   // =========================
-  async function handleAddStaff(e) {
+  const handleAddStaff = async (e) => {
     e.preventDefault();
-    setMessage("");
 
-    try {
-      const response = await api.post(
-        "/admin/staff",
-        {
-          name: staffName,
-          email: staffEmail,
-          role: staffRole,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      console.log("Staff added:", response.data);
-
-      setMessage(
-        "Teaching staff added successfully."
-      );
-
-      setStaffName("");
-      setStaffEmail("");
-      setStaffRole("lecturer");
-
-      loadStaff();
-    } catch (error) {
-      console.log("Add staff error:", error);
-      console.log("Response:", error.response);
-      console.log("Data:", error.response?.data);
-
-      setMessage(
-        error.response?.data?.error ||
-          error.response?.data?.message ||
-          "Failed to add teaching staff."
-      );
-    }
-  }
-
-  // =========================
-  // Get Rejected Rows
-  // =========================
-  function getRejectedRows(result) {
-    if (!result) {
-      return [];
-    }
-
-    if (Array.isArray(result.rejected_rows)) {
-      return result.rejected_rows;
-    }
-
-    if (Array.isArray(result.rejectedRows)) {
-      return result.rejectedRows;
-    }
-
-    if (Array.isArray(result.rejected)) {
-      return result.rejected;
-    }
-
-    if (Array.isArray(result.errors)) {
-      return result.errors;
-    }
-
-    return [];
-  }
-
-  // =========================
-  // Download Rejected Rows
-  // =========================
-  function handleDownloadRejectedRows() {
-    const rejectedRows = getRejectedRows(importResult);
-
-    if (rejectedRows.length === 0) {
+    if (
+      !staffName.trim() ||
+      !staffEmail.trim() ||
+      !staffPassword ||
+      !staffType ||
+      !staffDepartmentId
+    ) {
+      setMessage("Please fill all staff fields.");
       return;
     }
 
-    const headers = [
-      "row",
-      "student_code",
-      "student_name",
-      "email",
-      "reason",
-    ];
+    try {
+      setMessage("");
 
-    const csvRows = [
-      headers.join(","),
-      ...rejectedRows.map((row) => {
-        return headers
-          .map((header) => {
-            const value =
-              row?.[header] ??
-              row?.data?.[header] ??
-              "";
+      await api.post("/admin/staff", {
+        email: staffEmail.trim(),
+        password: staffPassword,
+        staff_name: staffName.trim(),
+        staff_type: staffType,
+        department_id: Number(staffDepartmentId),
+      });
 
-            return `"${String(value)
-              .replace(/"/g, '""')
-              .replace(/\n/g, " ")}"`;
-          })
-          .join(",");
-      }),
-    ];
+      setStaffName("");
+      setStaffEmail("");
+      setStaffPassword("");
+      setStaffType("lecturer");
 
-    const blob = new Blob(
-      [csvRows.join("\n")],
-      {
-        type: "text/csv;charset=utf-8;",
-      }
-    );
+      setMessage("Teaching staff created successfully.");
 
-    const url = URL.createObjectURL(blob);
+      await loadData();
+    } catch (error) {
+      console.log("Add staff error:", error);
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "rejected-students.csv";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-  }
+      setMessage(
+        getErrorMessage(error, "Failed to create teaching staff.")
+      );
+    }
+  };
 
   // =========================
-  // Student CSV Import
+  // ASSIGN STAFF TO SECTION
   // =========================
-  async function handleStudentImport(e) {
+  const handleAssignStaff = async (e) => {
     e.preventDefault();
 
+    if (
+      !assignSectionId ||
+      !assignStaffId ||
+      !assignStaffRole
+    ) {
+      setMessage("Please select section, staff and role.");
+      return;
+    }
+
+    try {
+      setMessage("");
+
+      await api.post(
+        `/admin/sections/${Number(assignSectionId)}/staff`,
+        {
+          staff_id: Number(assignStaffId),
+          staff_role: assignStaffRole,
+        }
+      );
+
+      setAssignSectionId("");
+      setAssignStaffId("");
+      setAssignStaffRole("lecturer");
+
+      setMessage("Staff assigned to section successfully.");
+
+      await loadData();
+    } catch (error) {
+      console.log("Assign staff error:", error);
+
+      setMessage(
+        getErrorMessage(
+          error,
+          "Failed to assign staff to section."
+        )
+      );
+    }
+  };
+
+  // =========================
+  // CSV FILE CHANGE
+  // =========================
+  const handleCsvFileChange = (e) => {
+    const file = e.target.files?.[0] || null;
+
+    setCsvFile(file);
     setImportMessage("");
     setImportResult(null);
+  };
+
+  // =========================
+  // CSV IMPORT
+  // =========================
+  const handleImportStudents = async (e) => {
+    e.preventDefault();
 
     if (!csvFile) {
       setImportMessage("Please select a CSV file.");
       return;
     }
 
-    if (!defaultPassword.trim()) {
+    if (!defaultPassword || defaultPassword.length < 8) {
       setImportMessage(
-        "Please enter a default password."
+        "Default password must be at least 8 characters."
       );
       return;
     }
 
-    setImportLoading(true);
-
     try {
+      setImportLoading(true);
+      setImportMessage("");
+      setImportResult(null);
+
       const csvText = await csvFile.text();
 
-      console.log("CSV file:", csvFile);
-      console.log("CSV content:", csvText);
-      console.log("CSV length:", csvText.length);
-
-      if (!csvText.trim()) {
-        setImportMessage("The CSV file is empty.");
-        return;
-      }
-
-      const params = new URLSearchParams();
-
-      params.append(
-        "default_password",
+      let url = `/admin/imports/students?default_password=${encodeURIComponent(
         defaultPassword
-      );
+      )}`;
 
-      // =========================
-      // Section
-      // =========================
       if (importSectionId) {
-        const selectedSection = sections.find(
-          (section) => {
-            const id =
-              section.id ??
-              section.section_id ??
-              section.sectionId;
-
-            return (
-              String(id) ===
-              String(importSectionId)
-            );
-          }
-        );
-
-        console.log(
-          "SELECTED SECTION OBJECT:",
-          selectedSection
-        );
-
-        if (!selectedSection) {
-          setImportMessage(
-            "Could not find the selected section."
-          );
-          return;
-        }
-
-        const realSectionId =
-          selectedSection.id ??
-          selectedSection.section_id ??
-          selectedSection.sectionId;
-
-        const sectionNumber = Number(
-          realSectionId
-        );
-
-        if (!Number.isInteger(sectionNumber)) {
-          setImportMessage(
-            "The selected section does not have a valid numeric ID."
-          );
-          return;
-        }
-
-        params.append(
-          "section_id",
-          String(sectionNumber)
-        );
+        url += `&section_id=${Number(importSectionId)}`;
       }
 
-      // =========================
-      // Department
-      // =========================
       if (importDepartmentId) {
-        const departmentNumber = Number(
-          importDepartmentId
-        );
-
-        if (!Number.isInteger(departmentNumber)) {
-          setImportMessage(
-            "Department ID must be a number."
-          );
-          return;
-        }
-
-        params.append(
-          "department_id",
-          String(departmentNumber)
-        );
+        url += `&department_id=${Number(importDepartmentId)}`;
       }
 
-      console.log(
-        "FINAL IMPORT URL:",
-        `/admin/imports/students?${params.toString()}`
-      );
-
-      const response = await api.post(
-        `/admin/imports/students?${params.toString()}`,
-        csvText,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "text/csv",
-          },
-        }
-      );
-
-      console.log(
-        "STUDENT IMPORT RESPONSE:",
-        response.data
-      );
+      const response = await api.post(url, csvText, {
+        headers: {
+          "Content-Type": "text/csv",
+        },
+      });
 
       setImportResult(response.data);
 
-      const rejectedRows = getRejectedRows(
-        response.data
+      setImportMessage(
+        `Import finished: ${response.data.created} created, ${response.data.rejected} rejected.`
       );
-
-      if (rejectedRows.length > 0) {
-        setImportMessage(
-          `Import completed with ${rejectedRows.length} rejected row(s).`
-        );
-      } else {
-        setImportMessage(
-          "Students imported successfully."
-        );
-      }
 
       setCsvFile(null);
-      setDefaultPassword("");
-      setImportSectionId("");
-      setImportDepartmentId("");
+
+      // Reset file input visually
+      e.target.reset();
+
+      await loadData();
     } catch (error) {
-      console.log(
-        "Student import error:",
-        error
-      );
-
-      console.log(
-        "Response:",
-        error.response
-      );
-
-      console.log(
-        "Data:",
-        error.response?.data
-      );
+      console.log("CSV import error:", error);
 
       setImportMessage(
-        error.response?.data?.error ||
-          error.response?.data?.message ||
-          "Failed to import students."
+        getErrorMessage(error, "Failed to import students.")
       );
     } finally {
       setImportLoading(false);
     }
-  }
+  };
 
-  const rejectedRows = getRejectedRows(importResult);
+  // =========================
+  // FIND HELPERS
+  // =========================
+  const getDepartmentName = (departmentId) => {
+    const department = departments.find(
+      (item) =>
+        Number(item.department_id) === Number(departmentId)
+    );
+
+    return department?.department_name || "-";
+  };
+
+  const getCourseName = (courseId) => {
+    const course = courses.find(
+      (item) => Number(item.course_id) === Number(courseId)
+    );
+
+    if (!course) return "-";
+
+    return `${course.course_code} - ${course.course_name}`;
+  };
+
+  const getSectionName = (sectionId) => {
+    const section = sections.find(
+      (item) => Number(item.section_id) === Number(sectionId)
+    );
+
+    return section?.section_name || "-";
+  };
 
   return (
     <section className="management-content">
       {/* =========================
-          PAGE HEADER
+          HEADER
       ========================= */}
-      <div className="management-page-header">
+      <div className="management-header">
         <div>
           <span className="management-small-title">
             ADMINISTRATION
@@ -660,14 +652,14 @@ function Management() {
           <h1>Management</h1>
 
           <p>
-            Manage courses, rooms, sections, staff,
-            and student enrollment.
+            Manage departments, courses, rooms, sections,
+            students, staff and enrollments.
           </p>
         </div>
       </div>
 
       {/* =========================
-          GENERAL MESSAGE
+          MESSAGE
       ========================= */}
       {message && (
         <div className="management-message">
@@ -676,782 +668,1146 @@ function Management() {
       )}
 
       {/* =========================
-          COURSES
+          LOADING
       ========================= */}
-      <section className="management-card">
-        <div className="management-card-header">
-          <div>
-            <h2>Courses</h2>
-            <p>Add and manage courses.</p>
+      {loading ? (
+        <div className="management-card">
+          <div className="management-empty-state">
+            <span>◷</span>
+            <h3>Loading management data...</h3>
+            <p>
+              Getting departments, courses, rooms, sections,
+              students and staff.
+            </p>
           </div>
         </div>
-
-        <form
-          className="management-form"
-          onSubmit={handleAddCourse}
-        >
-          <div className="form-grid two-columns">
-            <div className="form-group">
-              <label>Course Code</label>
-
-              <input
-                type="text"
-                value={courseCode}
-                onChange={(e) =>
-                  setCourseCode(e.target.value)
-                }
-                required
-              />
+      ) : (
+        <>
+          {/* ==================================================
+              DEPARTMENTS
+          ================================================== */}
+          <section className="management-card">
+            <div className="management-section-header">
+              <div>
+                <h2>Departments</h2>
+                <p>Create and view departments.</p>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label>Course Name</label>
+            <form
+              className="management-form"
+              onSubmit={handleAddDepartment}
+            >
+              <div className="management-form-group">
+                <label>Department Name</label>
 
-              <input
-                type="text"
-                value={courseName}
-                onChange={(e) =>
-                  setCourseName(e.target.value)
-                }
-                required
-              />
-            </div>
-          </div>
+                <input
+                  type="text"
+                  value={departmentName}
+                  onChange={(e) =>
+                    setDepartmentName(e.target.value)
+                  }
+                  placeholder="e.g. Computer Science"
+                />
+              </div>
 
-          <button
-            type="submit"
-            className="management-button"
-          >
-            Add Course
-          </button>
-        </form>
+              <button type="submit">
+                Add Department
+              </button>
+            </form>
 
-        <div className="management-list">
-          <h3>Courses List</h3>
-
-          {courses.length === 0 ? (
-            <p className="empty-message">
-              No courses found.
-            </p>
-          ) : (
             <div className="management-table-wrapper">
               <table className="management-table">
                 <thead>
                   <tr>
-                    <th>Course Code</th>
-                    <th>Course Name</th>
+                    <th>ID</th>
+                    <th>Department Name</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {courses.map((course) => (
-                    <tr key={course.id}>
-                      <td>
-                        <strong>
-                          {course.course_code}
-                        </strong>
-                      </td>
-
-                      <td>
-                        {course.course_name}
+                  {departments.length > 0 ? (
+                    departments.map((department) => (
+                      <tr key={department.department_id}>
+                        <td>{department.department_id}</td>
+                        <td>{department.department_name}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="2">
+                        No departments found.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
-      </section>
+          </section>
 
-      {/* =========================
-          ROOMS
-      ========================= */}
-      <section className="management-card">
-        <div className="management-card-header">
-          <div>
-            <h2>Rooms & Labs</h2>
-            <p>Add classrooms and labs.</p>
-          </div>
-        </div>
-
-        <form
-          className="management-form"
-          onSubmit={handleAddRoom}
-        >
-          <div className="form-grid three-columns">
-            <div className="form-group">
-              <label>Room Code</label>
-
-              <input
-                type="text"
-                value={roomCode}
-                onChange={(e) =>
-                  setRoomCode(e.target.value)
-                }
-                required
-              />
+          {/* ==================================================
+              COURSES
+          ================================================== */}
+          <section className="management-card">
+            <div className="management-section-header">
+              <div>
+                <h2>Courses</h2>
+                <p>Create courses and assign them to departments.</p>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label>Room Name</label>
+            <form
+              className="management-form"
+              onSubmit={handleAddCourse}
+            >
+              <div className="management-form-group">
+                <label>Course Code</label>
 
-              <input
-                type="text"
-                value={roomName}
-                onChange={(e) =>
-                  setRoomName(e.target.value)
-                }
-                required
-              />
-            </div>
+                <input
+                  type="text"
+                  value={courseCode}
+                  onChange={(e) =>
+                    setCourseCode(e.target.value)
+                  }
+                  placeholder="CS101"
+                />
+              </div>
 
-            <div className="form-group">
-              <label>Capacity</label>
+              <div className="management-form-group">
+                <label>Course Name</label>
 
-              <input
-                type="number"
-                min="1"
-                value={capacity}
-                onChange={(e) =>
-                  setCapacity(e.target.value)
-                }
-                required
-              />
-            </div>
-          </div>
+                <input
+                  type="text"
+                  value={courseName}
+                  onChange={(e) =>
+                    setCourseName(e.target.value)
+                  }
+                  placeholder="Intro to Programming"
+                />
+              </div>
 
-          <button
-            type="submit"
-            className="management-button"
-          >
-            Add Room / Lab
-          </button>
-        </form>
+              <div className="management-form-group">
+                <label>Department</label>
 
-        <div className="management-list">
-          <h3>Rooms List</h3>
+                <select
+                  value={courseDepartmentId}
+                  onChange={(e) =>
+                    setCourseDepartmentId(e.target.value)
+                  }
+                >
+                  <option value="">
+                    Select Department
+                  </option>
 
-          {rooms.length === 0 ? (
-            <p className="empty-message">
-              No rooms found.
-            </p>
-          ) : (
+                  {departments.map((department) => (
+                    <option
+                      key={department.department_id}
+                      value={department.department_id}
+                    >
+                      {department.department_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button type="submit">
+                Add Course
+              </button>
+            </form>
+
             <div className="management-table-wrapper">
               <table className="management-table">
                 <thead>
                   <tr>
-                    <th>Room Code</th>
-                    <th>Room Name</th>
+                    <th>ID</th>
+                    <th>Course Code</th>
+                    <th>Course Name</th>
+                    <th>Department</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {courses.length > 0 ? (
+                    courses.map((course) => (
+                      <tr key={course.course_id}>
+                        <td>{course.course_id}</td>
+                        <td>{course.course_code}</td>
+                        <td>{course.course_name}</td>
+                        <td>
+                          {getDepartmentName(
+                            course.department_id
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4">
+                        No courses found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* ==================================================
+              ROOMS
+          ================================================== */}
+          <section className="management-card">
+            <div className="management-section-header">
+              <div>
+                <h2>Rooms & Labs</h2>
+                <p>Create lecture rooms and labs.</p>
+              </div>
+            </div>
+
+            <form
+              className="management-form"
+              onSubmit={handleAddRoom}
+            >
+              <div className="management-form-group">
+                <label>Room Name</label>
+
+                <input
+                  type="text"
+                  value={roomName}
+                  onChange={(e) =>
+                    setRoomName(e.target.value)
+                  }
+                  placeholder="Lab 1"
+                />
+              </div>
+
+              <div className="management-form-group">
+                <label>Building</label>
+
+                <input
+                  type="text"
+                  value={building}
+                  onChange={(e) =>
+                    setBuilding(e.target.value)
+                  }
+                  placeholder="Building A"
+                />
+              </div>
+
+              <div className="management-form-group">
+                <label>Room Type</label>
+
+                <select
+                  value={roomType}
+                  onChange={(e) =>
+                    setRoomType(e.target.value)
+                  }
+                >
+                  <option value="lecture">
+                    Lecture
+                  </option>
+
+                  <option value="lab">
+                    Lab
+                  </option>
+                </select>
+              </div>
+
+              <div className="management-form-group">
+                <label>Capacity</label>
+
+                <input
+                  type="number"
+                  min="1"
+                  value={roomCapacity}
+                  onChange={(e) =>
+                    setRoomCapacity(e.target.value)
+                  }
+                  placeholder="30"
+                />
+              </div>
+
+              <button type="submit">
+                Add Room
+              </button>
+            </form>
+
+            <div className="management-table-wrapper">
+              <table className="management-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Room</th>
+                    <th>Building</th>
+                    <th>Type</th>
                     <th>Capacity</th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {rooms.map((room) => (
-                    <tr key={room.id}>
-                      <td>
-                        <strong>
-                          {room.room_code}
-                        </strong>
-                      </td>
-
-                      <td>{room.room_name}</td>
-
-                      <td>
-                        {room.capacity ?? ""}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* =========================
-          SECTIONS
-      ========================= */}
-      <section className="management-card">
-        <div className="management-card-header">
-          <div>
-            <h2>Sections</h2>
-            <p>
-              Create sections and assign them to
-              courses.
-            </p>
-          </div>
-        </div>
-
-        <form
-          className="management-form"
-          onSubmit={handleAddSection}
-        >
-          <div className="form-grid two-columns">
-            <div className="form-group">
-              <label>Section Name</label>
-
-              <input
-                type="text"
-                value={sectionName}
-                onChange={(e) =>
-                  setSectionName(e.target.value)
-                }
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Course</label>
-
-              <select
-                value={courseId}
-                onChange={(e) =>
-                  setCourseId(e.target.value)
-                }
-                required
-              >
-                <option value="">
-                  Select Course
-                </option>
-
-                {courses.map((course) => (
-                  <option
-                    key={course.id}
-                    value={course.id}
-                  >
-                    {course.course_code} -{" "}
-                    {course.course_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="management-button"
-          >
-            Add Section
-          </button>
-        </form>
-
-        <div className="management-list">
-          <h3>Sections List</h3>
-
-          {sections.length === 0 ? (
-            <p className="empty-message">
-              No sections found.
-            </p>
-          ) : (
-            <div className="management-table-wrapper">
-              <table className="management-table">
-                <thead>
-                  <tr>
-                    <th>Section</th>
-                    <th>Course</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {sections.map((section) => {
-                    const sectionId =
-                      section.id ??
-                      section.section_id ??
-                      section.sectionId;
-
-                    const sectionCourseId =
-                      section.course_id ??
-                      section.courseId;
-
-                    const course = courses.find(
-                      (item) =>
-                        String(item.id) ===
-                        String(sectionCourseId)
-                    );
-
-                    return (
-                      <tr key={sectionId}>
-                        <td>
-                          <strong>
-                            {section.section_name}
-                          </strong>
-                        </td>
-
-                        <td>
-                          {course
-                            ? `${course.course_code} - ${course.course_name}`
-                            : sectionCourseId ??
-                              "—"}
-                        </td>
+                  {rooms.length > 0 ? (
+                    rooms.map((room) => (
+                      <tr key={room.room_id}>
+                        <td>{room.room_id}</td>
+                        <td>{room.room_name}</td>
+                        <td>{room.building || "-"}</td>
+                        <td>{room.room_type}</td>
+                        <td>{room.capacity}</td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* =========================
-          ENROLLMENT
-      ========================= */}
-      <section className="management-card">
-        <div className="management-card-header">
-          <div>
-            <h2>Enrollment</h2>
-            <p>
-              Enroll a student into a section.
-            </p>
-          </div>
-        </div>
-
-        <form
-          className="management-form"
-          onSubmit={handleEnrollment}
-        >
-          <div className="form-grid two-columns">
-            <div className="form-group">
-              <label>Student ID</label>
-
-              <input
-                type="number"
-                min="1"
-                value={studentId}
-                onChange={(e) =>
-                  setStudentId(e.target.value)
-                }
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Section</label>
-
-              <select
-                value={enrollmentSectionId}
-                onChange={(e) =>
-                  setEnrollmentSectionId(
-                    e.target.value
-                  )
-                }
-                required
-              >
-                <option value="">
-                  Select Section
-                </option>
-
-                {sections.map((section) => {
-                  const sectionId =
-                    section.id ??
-                    section.section_id ??
-                    section.sectionId;
-
-                  return (
-                    <option
-                      key={sectionId}
-                      value={sectionId}
-                    >
-                      {section.section_name}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="management-button"
-          >
-            Enroll Student
-          </button>
-        </form>
-      </section>
-
-      {/* =========================
-          TEACHING STAFF
-      ========================= */}
-      <section className="management-card">
-        <div className="management-card-header">
-          <div>
-            <h2>Teaching Staff</h2>
-            <p>
-              Add lecturers and teaching assistants.
-            </p>
-          </div>
-        </div>
-
-        <form
-          className="management-form"
-          onSubmit={handleAddStaff}
-        >
-          <div className="form-grid three-columns">
-            <div className="form-group">
-              <label>Staff Name</label>
-
-              <input
-                type="text"
-                value={staffName}
-                onChange={(e) =>
-                  setStaffName(e.target.value)
-                }
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Email</label>
-
-              <input
-                type="email"
-                value={staffEmail}
-                onChange={(e) =>
-                  setStaffEmail(e.target.value)
-                }
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Role</label>
-
-              <select
-                value={staffRole}
-                onChange={(e) =>
-                  setStaffRole(e.target.value)
-                }
-              >
-                <option value="lecturer">
-                  Lecturer
-                </option>
-
-                <option value="ta">
-                  TA
-                </option>
-              </select>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="management-button"
-          >
-            Add Teaching Staff
-          </button>
-        </form>
-
-        <div className="management-list">
-          <h3>Teaching Staff List</h3>
-
-          {staff.length === 0 ? (
-            <p className="empty-message">
-              No teaching staff found.
-            </p>
-          ) : (
-            <div className="management-table-wrapper">
-              <table className="management-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {staff.map((member) => (
-                    <tr key={member.id}>
-                      <td>
-                        <strong>
-                          {member.name}
-                        </strong>
-                      </td>
-
-                      <td>{member.email}</td>
-
-                      <td>
-                        <span className="role-badge">
-                          {member.role}
-                        </span>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5">
+                        No rooms found.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
-      </section>
+          </section>
 
-      {/* =========================
-          CSV IMPORT
-      ========================= */}
-      <section className="management-card">
-        <div className="management-card-header">
-          <div>
-            <h2>Import Students from CSV</h2>
-
-            <p>
-              Required columns: student_code,
-              student_name, email
-              <br />
-              Optional column: level
-            </p>
-          </div>
-        </div>
-
-        <form
-          className="management-form"
-          onSubmit={handleStudentImport}
-        >
-          <div className="form-grid two-columns">
-            <div className="form-group">
-              <label>CSV File</label>
-
-              <input
-                type="file"
-                accept=".csv,text/csv"
-                onChange={(e) => {
-                  const file =
-                    e.target.files[0] || null;
-
-                  setCsvFile(file);
-                }}
-              />
-
-              {csvFile && (
-                <span className="file-name">
-                  Selected: {csvFile.name}
-                </span>
-              )}
+          {/* ==================================================
+              SECTIONS
+          ================================================== */}
+          <section className="management-card">
+            <div className="management-section-header">
+              <div>
+                <h2>Sections</h2>
+                <p>Create sections for courses.</p>
+              </div>
             </div>
 
-            <div className="form-group">
-              <label>Default Password</label>
+            <form
+              className="management-form"
+              onSubmit={handleAddSection}
+            >
+              <div className="management-form-group">
+                <label>Course</label>
 
-              <input
-                type="password"
-                value={defaultPassword}
-                onChange={(e) =>
-                  setDefaultPassword(
-                    e.target.value
-                  )
-                }
-                placeholder="Default password"
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Section (Optional)</label>
-
-              <select
-                value={importSectionId}
-                onChange={(e) =>
-                  setImportSectionId(e.target.value)
-                }
-              >
-                <option value="">
-                  No Section
-                </option>
-
-                {sections.map((section) => {
-                  const sectionId =
-                    section.id ??
-                    section.section_id ??
-                    section.sectionId;
-
-                  return (
-                    <option
-                      key={sectionId}
-                      value={String(
-                        sectionId ?? ""
-                      )}
-                    >
-                      {section.section_name}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>
-                Department ID (Optional)
-              </label>
-
-              <input
-                type="number"
-                value={importDepartmentId}
-                onChange={(e) =>
-                  setImportDepartmentId(
-                    e.target.value
-                  )
-                }
-                placeholder="Department ID"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="management-button"
-            disabled={importLoading}
-          >
-            {importLoading
-              ? "Importing..."
-              : "Import Students"}
-          </button>
-        </form>
-
-        {importMessage && (
-          <div className="import-message">
-            {importMessage}
-          </div>
-        )}
-
-        {/* =========================
-            IMPORT SUMMARY
-        ========================= */}
-        {importResult && (
-          <div className="import-result">
-            <div className="import-result-header">
-              <h3>Import Result</h3>
-
-              {rejectedRows.length > 0 && (
-                <button
-                  type="button"
-                  className="download-rejected-button"
-                  onClick={
-                    handleDownloadRejectedRows
+                <select
+                  value={sectionCourseId}
+                  onChange={(e) =>
+                    setSectionCourseId(e.target.value)
                   }
                 >
-                  Download Rejected Rows
-                </button>
-              )}
-            </div>
+                  <option value="">
+                    Select Course
+                  </option>
 
-            <div className="import-summary">
-              <div className="import-summary-item">
-                <span>Total</span>
-                <strong>
-                  {importResult.total ??
-                    importResult.total_rows ??
-                    importResult.totalRows ??
-                    "—"}
-                </strong>
+                  {courses.map((course) => (
+                    <option
+                      key={course.course_id}
+                      value={course.course_id}
+                    >
+                      {course.course_code} -{" "}
+                      {course.course_name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="import-summary-item success">
-                <span>Imported</span>
-                <strong>
-                  {importResult.imported ??
-                    importResult.imported_rows ??
-                    importResult.importedRows ??
-                    importResult.successful ??
-                    "—"}
-                </strong>
+              <div className="management-form-group">
+                <label>Section Name</label>
+
+                <input
+                  type="text"
+                  value={sectionName}
+                  onChange={(e) =>
+                    setSectionName(e.target.value)
+                  }
+                  placeholder="Section 1"
+                />
               </div>
 
-              <div className="import-summary-item rejected">
-                <span>Rejected</span>
-                <strong>
-                  {rejectedRows.length}
-                </strong>
+              <div className="management-form-group">
+                <label>Semester</label>
+
+                <input
+                  type="text"
+                  value={sectionSemester}
+                  onChange={(e) =>
+                    setSectionSemester(e.target.value)
+                  }
+                  placeholder="Fall 2026"
+                />
               </div>
-            </div>
 
-            {/* =========================
-                Rejected Rows
-            ========================= */}
-            {rejectedRows.length > 0 && (
-              <div className="rejected-section">
-                <h4>Rejected Rows</h4>
+              <div className="management-form-group">
+                <label>Capacity</label>
 
-                <div className="management-table-wrapper">
-                  <table className="management-table rejected-table">
-                    <thead>
-                      <tr>
-                        <th>Row</th>
-                        <th>Student Code</th>
-                        <th>Student Name</th>
-                        <th>Email</th>
-                        <th>Reason</th>
+                <input
+                  type="number"
+                  min="1"
+                  value={sectionCapacity}
+                  onChange={(e) =>
+                    setSectionCapacity(e.target.value)
+                  }
+                  placeholder="30"
+                />
+              </div>
+
+              <button type="submit">
+                Add Section
+              </button>
+            </form>
+
+            <div className="management-table-wrapper">
+              <table className="management-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Course</th>
+                    <th>Section</th>
+                    <th>Semester</th>
+                    <th>Capacity</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {sections.length > 0 ? (
+                    sections.map((section) => (
+                      <tr key={section.section_id}>
+                        <td>{section.section_id}</td>
+
+                        <td>
+                          {getCourseName(
+                            section.course_id
+                          )}
+                        </td>
+
+                        <td>{section.section_name}</td>
+
+                        <td>{section.semester}</td>
+
+                        <td>{section.capacity}</td>
                       </tr>
-                    </thead>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5">
+                        No sections found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-                    <tbody>
-                      {rejectedRows.map(
-                        (row, index) => {
-                          const data =
-                            row?.data || row;
+          {/* ==================================================
+              STUDENTS
+          ================================================== */}
+          <section className="management-card">
+            <div className="management-section-header">
+              <div>
+                <h2>Students</h2>
+                <p>Create and view student accounts.</p>
+              </div>
+            </div>
 
-                          return (
-                            <tr
-                              key={
-                                row?.row ??
-                                row?.row_number ??
-                                index
-                              }
-                            >
-                              <td>
-                                {row?.row ??
-                                  row?.row_number ??
-                                  index + 1}
-                              </td>
+            <form
+              className="management-form"
+              onSubmit={handleAddStudent}
+            >
+              <div className="management-form-group">
+                <label>Student Code</label>
 
-                              <td>
-                                {data?.student_code ??
-                                  "—"}
-                              </td>
+                <input
+                  type="text"
+                  value={studentCode}
+                  onChange={(e) =>
+                    setStudentCode(e.target.value)
+                  }
+                  placeholder="S2001"
+                />
+              </div>
 
-                              <td>
-                                {data?.student_name ??
-                                  "—"}
-                              </td>
+              <div className="management-form-group">
+                <label>Student Name</label>
 
-                              <td>
-                                {data?.email ?? "—"}
-                              </td>
+                <input
+                  type="text"
+                  value={studentName}
+                  onChange={(e) =>
+                    setStudentName(e.target.value)
+                  }
+                  placeholder="Student Name"
+                />
+              </div>
 
-                              <td className="rejected-reason">
-                                {row?.reason ??
-                                  row?.error ??
-                                  row?.message ??
-                                  "Invalid row"}
-                              </td>
-                            </tr>
-                          );
-                        }
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="management-form-group">
+                <label>Email</label>
+
+                <input
+                  type="email"
+                  value={studentEmail}
+                  onChange={(e) =>
+                    setStudentEmail(e.target.value)
+                  }
+                  placeholder="student@example.com"
+                />
+              </div>
+
+              <div className="management-form-group">
+                <label>Password</label>
+
+                <input
+                  type="password"
+                  value={studentPassword}
+                  onChange={(e) =>
+                    setStudentPassword(e.target.value)
+                  }
+                  placeholder="At least 8 characters"
+                />
+              </div>
+
+              <div className="management-form-group">
+                <label>Level</label>
+
+                <input
+                  type="number"
+                  min="1"
+                  max="8"
+                  value={studentLevel}
+                  onChange={(e) =>
+                    setStudentLevel(e.target.value)
+                  }
+                  placeholder="1"
+                />
+              </div>
+
+              <div className="management-form-group">
+                <label>Department</label>
+
+                <select
+                  value={studentDepartmentId}
+                  onChange={(e) =>
+                    setStudentDepartmentId(e.target.value)
+                  }
+                >
+                  <option value="">
+                    Select Department
+                  </option>
+
+                  {departments.map((department) => (
+                    <option
+                      key={department.department_id}
+                      value={department.department_id}
+                    >
+                      {department.department_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button type="submit">
+                Add Student
+              </button>
+            </form>
+
+            <div className="management-table-wrapper">
+              <table className="management-table">
+                <thead>
+                  <tr>
+                    <th>Student Code</th>
+                    <th>Student Name</th>
+                    <th>Email</th>
+                    <th>Level</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {students.length > 0 ? (
+                    students.map((student) => (
+                      <tr key={student.student_id}>
+                        <td>{student.student_code}</td>
+                        <td>{student.student_name}</td>
+                        <td>{student.email}</td>
+                        <td>{student.level}</td>
+
+                        <td>
+                          {student.department_name ||
+                            getDepartmentName(
+                              student.department_id
+                            )}
+                        </td>
+
+                        <td>
+                          {student.is_active
+                            ? "Active"
+                            : "Inactive"}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6">
+                        No students found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* ==================================================
+              ENROLLMENT
+          ================================================== */}
+          <section className="management-card">
+            <div className="management-section-header">
+              <div>
+                <h2>Enrollments</h2>
+                <p>Enroll students in sections.</p>
+              </div>
+            </div>
+
+            <form
+              className="management-form"
+              onSubmit={handleEnrollment}
+            >
+              <div className="management-form-group">
+                <label>Student</label>
+
+                <select
+                  value={enrollmentStudentId}
+                  onChange={(e) =>
+                    setEnrollmentStudentId(e.target.value)
+                  }
+                >
+                  <option value="">
+                    Select Student
+                  </option>
+
+                  {students.map((student) => (
+                    <option
+                      key={student.student_id}
+                      value={student.student_id}
+                    >
+                      {student.student_code} -{" "}
+                      {student.student_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="management-form-group">
+                <label>Section</label>
+
+                <select
+                  value={enrollmentSectionId}
+                  onChange={(e) =>
+                    setEnrollmentSectionId(e.target.value)
+                  }
+                >
+                  <option value="">
+                    Select Section
+                  </option>
+
+                  {sections.map((section) => (
+                    <option
+                      key={section.section_id}
+                      value={section.section_id}
+                    >
+                      {getCourseName(
+                        section.course_id
+                      )}{" "}
+                      - {section.section_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button type="submit">
+                Enroll Student
+              </button>
+            </form>
+
+            <div className="management-table-wrapper">
+              <table className="management-table">
+                <thead>
+                  <tr>
+                    <th>Student Code</th>
+                    <th>Student Name</th>
+                    <th>Course</th>
+                    <th>Section</th>
+                    <th>Status</th>
+                    <th>Enrolled At</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {enrollments.length > 0 ? (
+                    enrollments.map((enrollment) => (
+                      <tr
+                        key={enrollment.enrollment_id}
+                      >
+                        <td>
+                          {enrollment.student_code}
+                        </td>
+
+                        <td>
+                          {enrollment.student_name}
+                        </td>
+
+                        <td>
+                          {enrollment.course_code} -{" "}
+                          {enrollment.course_name}
+                        </td>
+
+                        <td>
+                          {enrollment.section_name}
+                        </td>
+
+                        <td>
+                          {enrollment.status}
+                        </td>
+
+                        <td>
+                          {enrollment.enrolled_at
+                            ? new Date(
+                                enrollment.enrolled_at
+                              ).toLocaleString()
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6">
+                        No enrollments found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* ==================================================
+              STAFF
+          ================================================== */}
+          <section className="management-card">
+            <div className="management-section-header">
+              <div>
+                <h2>Teaching Staff</h2>
+                <p>
+                  Create lecturers and TAs and view staff accounts.
+                </p>
+              </div>
+            </div>
+
+            <form
+              className="management-form"
+              onSubmit={handleAddStaff}
+            >
+              <div className="management-form-group">
+                <label>Staff Name</label>
+
+                <input
+                  type="text"
+                  value={staffName}
+                  onChange={(e) =>
+                    setStaffName(e.target.value)
+                  }
+                  placeholder="Dr Lecturer"
+                />
+              </div>
+
+              <div className="management-form-group">
+                <label>Email</label>
+
+                <input
+                  type="email"
+                  value={staffEmail}
+                  onChange={(e) =>
+                    setStaffEmail(e.target.value)
+                  }
+                  placeholder="lecturer@example.com"
+                />
+              </div>
+
+              <div className="management-form-group">
+                <label>Password</label>
+
+                <input
+                  type="password"
+                  value={staffPassword}
+                  onChange={(e) =>
+                    setStaffPassword(e.target.value)
+                  }
+                  placeholder="At least 8 characters"
+                />
+              </div>
+
+              <div className="management-form-group">
+                <label>Staff Type</label>
+
+                <select
+                  value={staffType}
+                  onChange={(e) =>
+                    setStaffType(e.target.value)
+                  }
+                >
+                  <option value="lecturer">
+                    Lecturer
+                  </option>
+
+                  <option value="TA">
+                    TA
+                  </option>
+                </select>
+              </div>
+
+              <div className="management-form-group">
+                <label>Department</label>
+
+                <select
+                  value={staffDepartmentId}
+                  onChange={(e) =>
+                    setStaffDepartmentId(e.target.value)
+                  }
+                >
+                  <option value="">
+                    Select Department
+                  </option>
+
+                  {departments.map((department) => (
+                    <option
+                      key={department.department_id}
+                      value={department.department_id}
+                    >
+                      {department.department_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button type="submit">
+                Add Staff
+              </button>
+            </form>
+
+            <div className="management-table-wrapper">
+              <table className="management-table">
+                <thead>
+                  <tr>
+                    <th>Staff Name</th>
+                    <th>Email</th>
+                    <th>Staff Type</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {staff.length > 0 ? (
+                    staff.map((member) => (
+                      <tr key={member.staff_id}>
+                        <td>{member.staff_name}</td>
+                        <td>{member.email}</td>
+                        <td>{member.staff_type}</td>
+
+                        <td>
+                          {member.department_name ||
+                            getDepartmentName(
+                              member.department_id
+                            )}
+                        </td>
+
+                        <td>
+                          {member.is_active
+                            ? "Active"
+                            : "Inactive"}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5">
+                        No teaching staff found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* ==================================================
+              ASSIGN STAFF TO SECTION
+          ================================================== */}
+          <section className="management-card">
+            <div className="management-section-header">
+              <div>
+                <h2>Assign Staff to Section</h2>
+                <p>
+                  Assign a lecturer or TA to a course section.
+                </p>
+              </div>
+            </div>
+
+            <form
+              className="management-form"
+              onSubmit={handleAssignStaff}
+            >
+              <div className="management-form-group">
+                <label>Section</label>
+
+                <select
+                  value={assignSectionId}
+                  onChange={(e) =>
+                    setAssignSectionId(e.target.value)
+                  }
+                >
+                  <option value="">
+                    Select Section
+                  </option>
+
+                  {sections.map((section) => (
+                    <option
+                      key={section.section_id}
+                      value={section.section_id}
+                    >
+                      {getCourseName(
+                        section.course_id
+                      )}{" "}
+                      - {section.section_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="management-form-group">
+                <label>Staff</label>
+
+                <select
+                  value={assignStaffId}
+                  onChange={(e) =>
+                    setAssignStaffId(e.target.value)
+                  }
+                >
+                  <option value="">
+                    Select Staff
+                  </option>
+
+                  {staff.map((member) => (
+                    <option
+                      key={member.staff_id}
+                      value={member.staff_id}
+                    >
+                      {member.staff_name} -{" "}
+                      {member.staff_type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="management-form-group">
+                <label>Staff Role</label>
+
+                <select
+                  value={assignStaffRole}
+                  onChange={(e) =>
+                    setAssignStaffRole(e.target.value)
+                  }
+                >
+                  <option value="lecturer">
+                    Lecturer
+                  </option>
+
+                  <option value="TA">
+                    TA
+                  </option>
+                </select>
+              </div>
+
+              <button type="submit">
+                Assign Staff
+              </button>
+            </form>
+          </section>
+
+          {/* ==================================================
+              CSV IMPORT
+          ================================================== */}
+          <section className="management-card">
+            <div className="management-section-header">
+              <div>
+                <h2>Import Students</h2>
+                <p>
+                  Import student accounts from a CSV file.
+                </p>
+              </div>
+            </div>
+
+            <form
+              className="management-form"
+              onSubmit={handleImportStudents}
+            >
+              <div className="management-form-group">
+                <label>CSV File</label>
+
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={handleCsvFileChange}
+                />
+              </div>
+
+              <div className="management-form-group">
+                <label>Default Password</label>
+
+                <input
+                  type="text"
+                  value={defaultPassword}
+                  onChange={(e) =>
+                    setDefaultPassword(e.target.value)
+                  }
+                  placeholder="Student@123"
+                />
+              </div>
+
+              <div className="management-form-group">
+                <label>Department</label>
+
+                <select
+                  value={importDepartmentId}
+                  onChange={(e) =>
+                    setImportDepartmentId(e.target.value)
+                  }
+                >
+                  <option value="">
+                    Select Department
+                  </option>
+
+                  {departments.map((department) => (
+                    <option
+                      key={department.department_id}
+                      value={department.department_id}
+                    >
+                      {department.department_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="management-form-group">
+                <label>
+                  Section{" "}
+                  <span>(optional)</span>
+                </label>
+
+                <select
+                  value={importSectionId}
+                  onChange={(e) =>
+                    setImportSectionId(e.target.value)
+                  }
+                >
+                  <option value="">
+                    No Section
+                  </option>
+
+                  {sections.map((section) => (
+                    <option
+                      key={section.section_id}
+                      value={section.section_id}
+                    >
+                      {getCourseName(
+                        section.course_id
+                      )}{" "}
+                      - {section.section_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={importLoading}
+              >
+                {importLoading
+                  ? "Importing..."
+                  : "Import Students"}
+              </button>
+            </form>
+
+            {importMessage && (
+              <div className="management-import-message">
+                {importMessage}
               </div>
             )}
 
-            {/* =========================
-                Raw Response
-            ========================= */}
-            <details className="raw-import-response">
-              <summary>
-                View raw import response
-              </summary>
+            {importResult && (
+              <div className="management-import-result">
+                <div>
+                  <strong>Total:</strong>{" "}
+                  {importResult.total}
+                </div>
 
-              <pre>
-                {JSON.stringify(
-                  importResult,
-                  null,
-                  2
+                <div>
+                  <strong>Created:</strong>{" "}
+                  {importResult.created}
+                </div>
+
+                <div>
+                  <strong>Rejected:</strong>{" "}
+                  {importResult.rejected}
+                </div>
+
+                {importResult.rejected_rows?.length > 0 && (
+                  <div className="management-rejected-rows">
+                    <h4>Rejected Rows</h4>
+
+                    <div className="management-table-wrapper">
+                      <table className="management-table">
+                        <thead>
+                          <tr>
+                            <th>Row</th>
+                            <th>Student Code</th>
+                            <th>Reason</th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          {importResult.rejected_rows.map(
+                            (row, index) => (
+                              <tr key={index}>
+                                <td>{row.row}</td>
+                                <td>
+                                  {row.student_code || "-"}
+                                </td>
+                                <td>{row.reason}</td>
+                              </tr>
+                            )
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 )}
-              </pre>
-            </details>
-          </div>
-        )}
-      </section>
+              </div>
+            )}
+
+            <div className="management-import-help">
+              <p>
+                <strong>Required CSV columns:</strong>{" "}
+                student_code, student_name, email
+              </p>
+
+              <p>
+                <strong>Optional:</strong> level
+              </p>
+
+              <p>
+                Maximum allowed rows: 1000
+              </p>
+            </div>
+          </section>
+        </>
+      )}
     </section>
   );
 }

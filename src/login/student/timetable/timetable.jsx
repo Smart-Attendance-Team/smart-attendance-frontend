@@ -1,160 +1,247 @@
+import { useEffect, useState } from "react";
+import api from "../../../api/axios";
 import "./timetable.css";
 
 function Timetable() {
-  // TEMPORARY MOCK DATA
-  // سيتم استبدالها ببيانات الـBackend لاحقًا
-  const classes = [
-    {
-      day: "Saturday",
-      subject: "Database",
-      lecturer: "Dr. Ahmed",
-      room: "A101",
-      time: "10:00 AM - 12:00 PM",
-      type: "Lecture",
-    },
-    {
-      day: "Sunday",
-      subject: "Web Development",
-      lecturer: "Dr. Sara",
-      room: "B204",
-      time: "12:00 PM - 02:00 PM",
-      type: "Lecture",
-    },
-    {
-      day: "Monday",
-      subject: "Artificial Intelligence",
-      lecturer: "Dr. Mohamed",
-      room: "C105",
-      time: "02:00 PM - 04:00 PM",
-      type: "Lecture",
-    },
-    {
-      day: "Tuesday",
-      subject: "Data Structures",
-      lecturer: "Dr. Ali",
-      room: "A203",
-      time: "09:00 AM - 11:00 AM",
-      type: "Lab",
-    },
-    {
-      day: "Wednesday",
-      subject: "Machine Learning",
-      lecturer: "Dr. Hany",
-      room: "C201",
-      time: "11:00 AM - 01:00 PM",
-      type: "Lecture",
-    },
-  ];
+const [classes, setClasses] = useState([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState("");
 
-  return (
-    <main className="dashboard-content">
+// =====================================================
+// GET STUDENT TIMETABLE
+// =====================================================
 
-      {/* ================= PAGE HEADER ================= */}
+useEffect(() => {
+async function getTimetable() {
+try {
+setLoading(true);
+setError("");
 
-      <div className="page-header">
 
-        <div>
-          <p className="page-small-title">
-            Academic Schedule
-          </p>
+    const response = await api.get(
+      "/students/my-timetable"
+    );
 
-          <h1>Timetable</h1>
+    console.log("Student timetable:", response.data);
 
-          <p className="page-description">
-            View your weekly classes and lecture schedule.
-          </p>
-        </div>
+    setClasses(response.data);
+  } catch (error) {
+    console.log(
+      "Timetable error:",
+      error
+    );
+    console.log(
+      "Response:",
+      error.response
+    );
+    console.log(
+      "Data:",
+      error.response?.data
+    );
 
-        <div className="week-box">
-          <span>Current Week</span>
-          <strong>September 21 - 27, 2026</strong>
-        </div>
+    setError(
+      error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Failed to load timetable."
+    );
+  } finally {
+    setLoading(false);
+  }
+}
 
+getTimetable();
+
+
+}, []);
+
+// =====================================================
+// FORMAT TIME
+// =====================================================
+
+function formatTime(time) {
+if (!time) {
+return "-";
+}
+
+
+const [hours, minutes] = time
+  .split(":")
+  .map(Number);
+
+const date = new Date();
+
+date.setHours(hours, minutes, 0, 0);
+
+return date.toLocaleTimeString([], {
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+
+}
+
+// =====================================================
+// GET CLASS TYPE
+// =====================================================
+
+function getClassType() {
+// Backend does not currently return
+// Lecture / Lab type.
+return "-";
+}
+
+return ( <main className="dashboard-content">
+
+
+  {/* ================= PAGE HEADER ================= */}
+
+  <div className="page-header">
+
+    <div>
+      <p className="page-small-title">
+        Academic Schedule
+      </p>
+
+      <h1>Timetable</h1>
+
+      <p className="page-description">
+        View your weekly classes and lecture schedule.
+      </p>
+    </div>
+
+    <div className="week-box">
+      <span>Current Week</span>
+      <strong>
+        September 21 - 27, 2026
+      </strong>
+    </div>
+
+  </div>
+
+  {/* ================= SUMMARY ================= */}
+
+  <div className="timetable-summary">
+
+    <div className="summary-card">
+
+      <div className="summary-icon blue">
+        ▣
       </div>
 
+      <div>
+        <span>Total Classes</span>
 
-      {/* ================= SUMMARY ================= */}
-
-      <div className="timetable-summary">
-
-        <div className="summary-card">
-
-          <div className="summary-icon blue">
-            ▣
-          </div>
-
-          <div>
-            <span>Total Classes</span>
-
-            <strong>
-              {classes.length}
-            </strong>
-          </div>
-
-        </div>
-
-
-        <div className="summary-card">
-
-          <div className="summary-icon green">
-            ✓
-          </div>
-
-          <div>
-            <span>Lectures</span>
-
-            <strong>
-              {classes.filter(
-                (item) => item.type === "Lecture"
-              ).length}
-            </strong>
-          </div>
-
-        </div>
-
-
-        <div className="summary-card">
-
-          <div className="summary-icon orange">
-            ⌘
-          </div>
-
-          <div>
-            <span>Labs</span>
-
-            <strong>
-              {classes.filter(
-                (item) => item.type === "Lab"
-              ).length}
-            </strong>
-          </div>
-
-        </div>
-
+        <strong>
+          {classes.length}
+        </strong>
       </div>
 
+    </div>
 
-      {/* ================= TABLE ================= */}
+    <div className="summary-card">
 
-      <div className="timetable-card">
+      <div className="summary-icon green">
+        ✓
+      </div>
 
-        <div className="table-header">
+      <div>
+        <span>Lectures</span>
 
-          <div>
-            <h2>Weekly Schedule</h2>
+        <strong>
+          -
+        </strong>
+      </div>
 
-            <p>
-              Your classes for this week
-            </p>
+    </div>
+
+    <div className="summary-card">
+
+      <div className="summary-icon orange">
+        ⌘
+      </div>
+
+      <div>
+        <span>Labs</span>
+
+        <strong>
+          -
+        </strong>
+      </div>
+
+    </div>
+
+  </div>
+
+  {/* ================= TABLE ================= */}
+
+  <div className="timetable-card">
+
+    <div className="table-header">
+
+      <div>
+        <h2>Weekly Schedule</h2>
+
+        <p>
+          Your classes for this week
+        </p>
+      </div>
+
+      <select className="week-select">
+        <option>This Week</option>
+        <option>Next Week</option>
+      </select>
+
+    </div>
+
+    {/* ================= LOADING ================= */}
+
+    {loading && (
+      <div className="history-empty">
+        <div className="empty-spinner"></div>
+
+        <p>
+          Loading timetable...
+        </p>
+      </div>
+    )}
+
+    {/* ================= ERROR ================= */}
+
+    {!loading && error && (
+      <div className="history-error">
+        <span>!</span>
+
+        <p>{error}</p>
+      </div>
+    )}
+
+    {/* ================= EMPTY ================= */}
+
+    {!loading &&
+      !error &&
+      classes.length === 0 && (
+        <div className="history-empty">
+
+          <div className="empty-history-icon">
+            ◷
           </div>
 
-          <select className="week-select">
-            <option>This Week</option>
-            <option>Next Week</option>
-          </select>
+          <h3>
+            No Timetable Records
+          </h3>
+
+          <p>
+            No classes were found in your timetable.
+          </p>
 
         </div>
+      )}
 
+    {/* ================= TABLE ================= */}
+
+    {!loading &&
+      !error &&
+      classes.length > 0 && (
 
         <div className="table-wrapper">
 
@@ -164,60 +251,63 @@ function Timetable() {
               <tr>
                 <th>Day</th>
                 <th>Course</th>
-                <th>Lecturer</th>
+                <th>Section</th>
                 <th>Room</th>
                 <th>Time</th>
                 <th>Type</th>
               </tr>
             </thead>
 
-
             <tbody>
 
-              {classes.map((item, index) => (
+              {classes.map((item) => (
 
-                <tr key={index}>
+                <tr key={item.slot_id}>
 
                   <td>
                     <span className="day-badge">
-                      {item.day}
+                      {item.day_of_week}
                     </span>
                   </td>
 
                   <td>
                     <strong className="course-name">
-                      {item.subject}
+                      {item.course_name}
                     </strong>
-                  </td>
 
-                  <td>
                     <span className="lecturer-name">
-                      {item.lecturer}
+                      {item.course_code}
                     </span>
                   </td>
 
                   <td>
                     <span className="room-badge">
-                      {item.room}
+                      {item.section_name}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span className="room-badge">
+                      {item.room_name}
+
+                      {item.building
+                        ? ` - ${item.building}`
+                        : ""}
                     </span>
                   </td>
 
                   <td>
                     <span className="time-text">
-                      {item.time}
+                      {formatTime(item.start_time)}
+                      {" - "}
+                      {formatTime(item.end_time)}
                     </span>
                   </td>
 
                   <td>
 
-                    <span
-                      className={`type-badge ${
-                        item.type === "Lab"
-                          ? "lab"
-                          : "lecture"
-                      }`}
-                    >
-                      {item.type}
+                    <span className="type-badge lecture">
+                      {getClassType()}
                     </span>
 
                   </td>
@@ -232,10 +322,14 @@ function Timetable() {
 
         </div>
 
-      </div>
+      )}
 
-    </main>
-  );
+  </div>
+
+</main>
+
+
+);
 }
 
 export default Timetable;

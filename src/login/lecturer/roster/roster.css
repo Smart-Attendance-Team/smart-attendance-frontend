@@ -4,7 +4,6 @@
   min-height: calc(100vh - 76px);
 }
 
-
 /* ================= HEADER ================= */
 
 .roster-header {
@@ -45,6 +44,17 @@
   border-radius: 50%;
 }
 
+/* ================= MESSAGE ================= */
+
+.roster-message {
+  margin-bottom: 18px;
+  padding: 12px 15px;
+  border-radius: 8px;
+  background: #eeeffd;
+  color: #555ac7;
+  font-size: 13px;
+  font-weight: 500;
+}
 
 /* ================= SESSION CARD ================= */
 
@@ -74,7 +84,6 @@
   color: #292d38;
   font-size: 15px;
 }
-
 
 /* ================= STATISTICS ================= */
 
@@ -115,7 +124,6 @@
 .roster-stat-card.excused strong {
   color: #d18b25;
 }
-
 
 /* ================= TABLE ================= */
 
@@ -171,6 +179,15 @@ td {
   font-size: 13px;
 }
 
+/* ================= LOADING / EMPTY ================= */
+
+.roster-loading,
+.roster-empty {
+  padding: 45px 20px;
+  text-align: center;
+  color: #7b8190;
+  font-size: 14px;
+}
 
 /* ================= STUDENT ================= */
 
@@ -194,7 +211,6 @@ td {
   font-weight: 600;
 }
 
-
 /* ================= STATUS ================= */
 
 .attendance-status {
@@ -203,6 +219,7 @@ td {
   border-radius: 15px;
   font-size: 12px;
   font-weight: 600;
+  text-transform: capitalize;
 }
 
 .attendance-status.present {
@@ -220,6 +237,10 @@ td {
   color: #c48321;
 }
 
+.attendance-status.late {
+  background: #fff4df;
+  color: #c48321;
+}
 
 /* ================= ACTIONS ================= */
 
@@ -257,6 +278,10 @@ td {
   opacity: 0.8;
 }
 
+.action-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* ================= MODAL ================= */
 
@@ -299,6 +324,11 @@ td {
   cursor: pointer;
 }
 
+.close-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .modal-content {
   padding: 22px;
 }
@@ -325,6 +355,7 @@ td {
   margin-left: 6px;
   font-weight: 600;
   color: #6267d8;
+  text-transform: capitalize;
 }
 
 .modal-content label {
@@ -355,6 +386,11 @@ td {
   border-color: #6b6fe5;
 }
 
+.modal-content textarea:disabled {
+  background: #f5f6f8;
+  cursor: not-allowed;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -381,6 +417,10 @@ td {
   color: white;
 }
 
+.modal-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 /* ================= RESPONSIVE ================= */
 

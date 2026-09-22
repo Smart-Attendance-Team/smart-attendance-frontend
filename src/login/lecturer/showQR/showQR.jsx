@@ -1,25 +1,45 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
+import api from "../../../api/axios";
 import "./showQR.css";
-
-// BACKEND:
-// import api from "../../../api/axios";
 
 function ShowQR() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const sessionId = location.state?.sessionId || 12345;
+  // =====================================================
+  // SESSION ID
+  // =====================================================
 
-  const [qrToken, setQrToken] = useState(
-    "smart-attendance-session-12345-token"
+  const savedSession = localStorage.getItem(
+    "lecturerActiveSession"
   );
 
-  const [loading, setLoading] = useState(false);
+  const savedSessionData = savedSession
+    ? JSON.parse(savedSession)
+    : null;
+
+  const sessionId =
+    location.state?.sessionId ||
+    savedSessionData?.sessionId ||
+    null;
+
+  // =====================================================
+  // QR STATE
+  // =====================================================
+
+  const [qrToken, setQrToken] = useState("");
+
+  const [loading, setLoading] = useState(true);
+
   const [message, setMessage] = useState("");
 
-  const [countdown, setCountdown] = useState(15);
+  const [countdown, setCountdown] = useState(0);
+
+  // =====================================================
+  // ROSTER
+  // =====================================================
 
   const [roster, setRoster] = useState([
     {
@@ -59,35 +79,83 @@ function ShowQR() {
     },
   ]);
 
+  // =====================================================
+  // EDIT ATTENDANCE
+  // =====================================================
+
   const [editingId, setEditingId] = useState(null);
+
   const [selectedStatus, setSelectedStatus] = useState("");
+
   const [reason, setReason] = useState("");
+
+  // =====================================================
+  // CLOSE SESSION
+  // =====================================================
 
   const [closing, setClosing] = useState(false);
 
-  function refreshQR() {
-    setLoading(true);
+  // =====================================================
+  // GET QR TOKEN
+  // =====================================================
 
-    setTimeout(() => {
-      const newToken = `smart-attendance-${sessionId}-${Date.now()}`;
-
-      setQrToken(newToken);
-      setCountdown(15);
+  async function getQRToken() {
+    if (!sessionId) {
+      setMessage("No active session was found.");
       setLoading(false);
-      setMessage("QR code refreshed successfully.");
+      return;
+    }
 
-      setTimeout(() => {
-        setMessage("");
-      }, 2000);
-    }, 400);
+    try {
+      setLoading(true);
+
+      const response = await api.get(
+        `/sessions/${sessionId}/qr`
+      );
+
+      console.log("QR response:", response.data);
+
+      setQrToken(response.data.token);
+
+      setCountdown(response.data.expires_in_seconds);
+
+      setMessage("");
+    } catch (error) {
+      console.log("QR error:", error);
+      console.log("Response:", error.response);
+      console.log("Data:", error.response?.data);
+
+      setMessage(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to generate QR code."
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
+  // =====================================================
+  // GET FIRST QR
+  // =====================================================
+
   useEffect(() => {
+    getQRToken();
+  }, [sessionId]);
+
+  // =====================================================
+  // QR COUNTDOWN
+  // =====================================================
+
+  useEffect(() => {
+    if (!qrToken || countdown <= 0) {
+      return;
+    }
+
     const timer = setInterval(() => {
       setCountdown((previous) => {
         if (previous <= 1) {
-          refreshQR();
-          return 15;
+          return 0;
         }
 
         return previous - 1;
@@ -95,7 +163,37 @@ function ShowQR() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [qrToken, countdown]);
+
+  // =====================================================
+  // REFRESH QR WHEN EXPIRED
+  // =====================================================
+
+  useEffect(() => {
+    if (countdown !== 0 || !qrToken) {
+      return;
+    }
+
+    getQRToken();
+  }, [countdown, qrToken]);
+
+  // =====================================================
+  // MANUAL QR REFRESH
+  // =====================================================
+
+  async function refreshQR() {
+    await getQRToken();
+
+    setMessage("QR code refreshed successfully.");
+
+    setTimeout(() => {
+      setMessage("");
+    }, 2000);
+  }
+
+  // =====================================================
+  // START EDIT
+  // =====================================================
 
   function startEdit(attendanceId, currentStatus) {
     setEditingId(attendanceId);
@@ -104,11 +202,20 @@ function ShowQR() {
     setMessage("");
   }
 
+  // =====================================================
+  // CANCEL EDIT
+  // =====================================================
+
   function cancelEdit() {
     setEditingId(null);
     setSelectedStatus("");
     setReason("");
   }
+
+  // =====================================================
+  // UPDATE ATTENDANCE
+  // TEMPORARY MOCK
+  // =====================================================
 
   function updateAttendance(attendanceId) {
     if (!selectedStatus) {
@@ -141,24 +248,60 @@ function ShowQR() {
     }, 2500);
   }
 
-  function closeSession() {
+  // =====================================================
+  // CLOSE SESSION - BACKEND
+  // =====================================================
+
+  async function closeSession() {
     const confirmed = window.confirm(
       "Are you sure you want to close this attendance session?"
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
+
+    if (!sessionId) {
+      setMessage("No active session was found.");
+      return;
+    }
 
     setClosing(true);
+    setMessage("");
 
-    setTimeout(() => {
-      setClosing(false);
+    try {
+      const response = await api.post(
+        `/sessions/${sessionId}/close`
+      );
+
+      console.log("Close session response:", response.data);
+
+      // Remove local active session
+      localStorage.removeItem("lecturerActiveSession");
+
       setMessage("Attendance session closed successfully.");
 
       setTimeout(() => {
         navigate("/lecturer");
       }, 1000);
-    }, 700);
+    } catch (error) {
+      console.log("Close session error:", error);
+      console.log("Response:", error.response);
+      console.log("Data:", error.response?.data);
+
+      setMessage(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to close attendance session."
+      );
+    } finally {
+      setClosing(false);
+    }
   }
+
+  // =====================================================
+  // ROSTER STATS
+  // =====================================================
 
   const presentCount = roster.filter(
     (student) => student.attendance_status === "present"
@@ -174,32 +317,50 @@ function ShowQR() {
 
   const totalStudents = roster.length;
 
+  // =====================================================
+  // STATUS CLASS
+  // =====================================================
+
   function getStatusClass(status) {
     return `status-badge ${status}`;
   }
 
+  // =====================================================
+  // RENDER
+  // =====================================================
+
   return (
     <section className="dashboard-content">
+
       {/* ================= PAGE HEADER ================= */}
 
       <div className="page-header">
+
         <div>
+
           <div className="page-small-title">
             LIVE ATTENDANCE
           </div>
 
-          <h1>Attendance Session</h1>
+          <h1>
+            Attendance Session
+          </h1>
 
           <p>
             Manage the live attendance session and monitor
             student attendance.
           </p>
+
         </div>
 
         <div className="session-status">
+
           <span className="live-dot"></span>
+
           Session Active
+
         </div>
+
       </div>
 
       {/* ================= MESSAGE ================= */}
@@ -213,75 +374,116 @@ function ShowQR() {
       {/* ================= SESSION INFO ================= */}
 
       <div className="session-info-row">
+
         <div className="session-detail-card">
+
           <span>COURSE</span>
 
-          <strong>Database</strong>
+          <strong>
+            Database
+          </strong>
 
-          <small>CS301 · Section A</small>
+          <small>
+            CS301 · Section A
+          </small>
+
         </div>
 
         <div className="session-detail-card">
+
           <span>ROOM</span>
 
-          <strong>Lab 1</strong>
+          <strong>
+            Lab 1
+          </strong>
 
-          <small>Session ID: {sessionId}</small>
+          <small>
+            Session ID: {sessionId || "—"}
+          </small>
+
         </div>
 
         <div className="session-detail-card">
+
           <span>TIME</span>
 
-          <strong>10:00 AM - 12:00 PM</strong>
+          <strong>
+            10:00 AM - 12:00 PM
+          </strong>
 
-          <small>Saturday</small>
+          <small>
+            Saturday
+          </small>
+
         </div>
 
         <div className="session-detail-card">
+
           <span>STUDENTS</span>
 
-          <strong>{totalStudents}</strong>
+          <strong>
+            {totalStudents}
+          </strong>
 
-          <small>Enrolled students</small>
+          <small>
+            Enrolled students
+          </small>
+
         </div>
+
       </div>
 
       {/* ================= QR + STATS ================= */}
 
       <div className="qr-layout">
-        {/* QR CARD */}
+
+        {/* ================= QR CARD ================= */}
 
         <div className="qr-card">
+
           <div className="card-header">
+
             <div>
-              <h2>Attendance QR Code</h2>
+
+              <h2>
+                Attendance QR Code
+              </h2>
 
               <p>
                 Students scan this QR code to record
                 their attendance.
               </p>
+
             </div>
 
             <span className="qr-live-badge">
               LIVE
             </span>
+
           </div>
 
           <div className="qr-container">
+
             {loading ? (
               <div className="qr-loading">
                 Generating QR...
               </div>
-            ) : (
+            ) : qrToken ? (
               <QRCodeCanvas
                 value={qrToken}
                 size={270}
                 level="H"
               />
+            ) : (
+              <div className="qr-loading">
+                No QR code available.
+              </div>
             )}
+
           </div>
 
           <div className="qr-countdown">
+
             <div className="countdown-label">
               QR refreshes in
             </div>
@@ -291,13 +493,28 @@ function ShowQR() {
             </div>
 
             <div className="countdown-progress">
+
               <div
                 className="countdown-progress-bar"
                 style={{
-                  width: `${(countdown / 15) * 100}%`,
+                  width: `${
+                    countdown > 0
+                      ? Math.min(
+                          (countdown /
+                            Math.max(
+                              countdown,
+                              1
+                            )) *
+                            100,
+                          100
+                        )
+                      : 0
+                  }%`,
                 }}
               />
+
             </div>
+
           </div>
 
           <button
@@ -306,51 +523,100 @@ function ShowQR() {
             disabled={loading}
           >
             ↻
-            {loading ? "Refreshing..." : "Refresh QR"}
+            {loading
+              ? "Refreshing..."
+              : "Refresh QR"}
           </button>
+
         </div>
 
-        {/* ATTENDANCE OVERVIEW */}
+        {/* ================= ATTENDANCE OVERVIEW ================= */}
 
         <div className="attendance-overview">
-          <div className="card-header">
-            <div>
-              <h2>Attendance Overview</h2>
 
-              <p>Current session status</p>
+          <div className="card-header">
+
+            <div>
+
+              <h2>
+                Attendance Overview
+              </h2>
+
+              <p>
+                Current session status
+              </p>
+
             </div>
+
           </div>
 
           <div className="attendance-stat present-stat">
-            <div className="stat-icon">✓</div>
+
+            <div className="stat-icon">
+              ✓
+            </div>
 
             <div>
-              <span>Present</span>
-              <strong>{presentCount}</strong>
+
+              <span>
+                Present
+              </span>
+
+              <strong>
+                {presentCount}
+              </strong>
+
             </div>
+
           </div>
 
           <div className="attendance-stat late-stat">
-            <div className="stat-icon">◷</div>
+
+            <div className="stat-icon">
+              ◷
+            </div>
 
             <div>
-              <span>Late</span>
-              <strong>{lateCount}</strong>
+
+              <span>
+                Late
+              </span>
+
+              <strong>
+                {lateCount}
+              </strong>
+
             </div>
+
           </div>
 
           <div className="attendance-stat absent-stat">
-            <div className="stat-icon">×</div>
+
+            <div className="stat-icon">
+              ×
+            </div>
 
             <div>
-              <span>Absent</span>
-              <strong>{absentCount}</strong>
+
+              <span>
+                Absent
+              </span>
+
+              <strong>
+                {absentCount}
+              </strong>
+
             </div>
+
           </div>
 
           <div className="attendance-progress">
+
             <div className="progress-header">
-              <span>Attendance Rate</span>
+
+              <span>
+                Attendance Rate
+              </span>
 
               <strong>
                 {totalStudents
@@ -362,9 +628,11 @@ function ShowQR() {
                   : 0}
                 %
               </strong>
+
             </div>
 
             <div className="progress-bar">
+
               <div
                 style={{
                   width: `${
@@ -376,32 +644,48 @@ function ShowQR() {
                   }%`,
                 }}
               />
+
             </div>
+
           </div>
+
         </div>
+
       </div>
 
       {/* ================= LIVE ROSTER ================= */}
 
       <div className="roster-card">
+
         <div className="card-header">
+
           <div>
-            <h2>Live Roster</h2>
+
+            <h2>
+              Live Roster
+            </h2>
 
             <p>
               Monitor and manually update attendance.
             </p>
+
           </div>
 
           <span className="roster-count">
-            {presentCount + lateCount} / {totalStudents}{" "}
-            attended
+
+            {presentCount + lateCount} /{" "}
+            {totalStudents} attended
+
           </span>
+
         </div>
 
         <div className="table-wrapper">
+
           <table className="roster-table">
+
             <thead>
+
               <tr>
                 <th>Student</th>
                 <th>Student Code</th>
@@ -409,10 +693,13 @@ function ShowQR() {
                 <th>Minutes Late</th>
                 <th>Action</th>
               </tr>
+
             </thead>
 
             <tbody>
+
               {roster.map((student) => {
+
                 const attendanceId =
                   student.attendance_id;
 
@@ -421,54 +708,78 @@ function ShowQR() {
 
                 return (
                   <tr key={attendanceId}>
+
                     <td>
+
                       <div className="student-cell">
+
                         <div className="student-avatar">
+
                           {student.student_name
                             .split(" ")
-                            .map((word) => word[0])
+                            .map(
+                              (word) => word[0]
+                            )
                             .slice(0, 2)
                             .join("")}
+
                         </div>
 
                         <strong>
                           {student.student_name}
                         </strong>
+
                       </div>
+
                     </td>
 
                     <td>
+
                       <span className="student-code">
                         {student.student_code}
                       </span>
+
                     </td>
 
                     <td>
+
                       <span
-                        className={getStatusClass(status)}
+                        className={getStatusClass(
+                          status
+                        )}
                       >
                         {status.charAt(0).toUpperCase() +
                           status.slice(1)}
                       </span>
+
                     </td>
 
                     <td>
+
                       {student.minutes_late > 0
                         ? `${student.minutes_late} min`
                         : "—"}
+
                     </td>
 
                     <td>
-                      {editingId === attendanceId ? (
+
+                      {editingId ===
+                      attendanceId ? (
+
                         <div className="edit-attendance">
+
                           <select
-                            value={selectedStatus}
+                            value={
+                              selectedStatus
+                            }
                             onChange={(e) =>
                               setSelectedStatus(
                                 e.target.value
                               )
                             }
                           >
+
                             <option value="present">
                               Present
                             </option>
@@ -484,6 +795,7 @@ function ShowQR() {
                             <option value="excused">
                               Excused
                             </option>
+
                           </select>
 
                           <input
@@ -491,11 +803,14 @@ function ShowQR() {
                             placeholder="Reason"
                             value={reason}
                             onChange={(e) =>
-                              setReason(e.target.value)
+                              setReason(
+                                e.target.value
+                              )
                             }
                           />
 
                           <div className="edit-actions">
+
                             <button
                               className="save-button"
                               onClick={() =>
@@ -513,9 +828,13 @@ function ShowQR() {
                             >
                               Cancel
                             </button>
+
                           </div>
+
                         </div>
+
                       ) : (
+
                         <button
                           className="edit-button"
                           onClick={() =>
@@ -527,33 +846,48 @@ function ShowQR() {
                         >
                           Edit
                         </button>
+
                       )}
+
                     </td>
+
                   </tr>
                 );
               })}
+
             </tbody>
+
           </table>
+
         </div>
+
       </div>
 
       {/* ================= SESSION ACTIONS ================= */}
 
       <div className="session-actions-card">
+
         <div>
-          <h3>Finish Attendance Session</h3>
+
+          <h3>
+            Finish Attendance Session
+          </h3>
 
           <p>
             Close the session when attendance collection
             is complete. Students will no longer be able
             to scan the QR code.
           </p>
+
         </div>
 
         <div className="action-buttons">
+
           <button
             className="back-button"
-            onClick={() => navigate("/lecturer")}
+            onClick={() =>
+              navigate("/lecturer")
+            }
           >
             Back to Sessions
           </button>
@@ -567,8 +901,11 @@ function ShowQR() {
               ? "Closing Session..."
               : "Close Session"}
           </button>
+
         </div>
+
       </div>
+
     </section>
   );
 }

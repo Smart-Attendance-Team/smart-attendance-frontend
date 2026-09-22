@@ -1,61 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import api from "../../../api/axios";
+import api from "../../../api/axios";
 import "./openSession.css";
 
 function OpenSession() {
-  // const token = localStorage.getItem("token");
-
   const navigate = useNavigate();
 
-  // ================= MOCK DATA =================
+  // ================= SLOTS =================
 
-  const [slots, setSlots] = useState([
-    {
-      slot_id: 1,
-      course_code: "CS301",
-      course_name: "Database",
-      section_name: "Section A",
-      room_name: "Lab 1",
-      day_of_week: "Saturday",
-      start_time: "10:00 AM",
-      end_time: "12:00 PM",
-      is_today: true,
-    },
-    {
-      slot_id: 2,
-      course_code: "CS302",
-      course_name: "Web Development",
-      section_name: "Section B",
-      room_name: "Lab 2",
-      day_of_week: "Sunday",
-      start_time: "12:00 PM",
-      end_time: "02:00 PM",
-      is_today: false,
-    },
-    {
-      slot_id: 3,
-      course_code: "AI301",
-      course_name: "Artificial Intelligence",
-      section_name: "Section A",
-      room_name: "Room 204",
-      day_of_week: "Monday",
-      start_time: "10:00 AM",
-      end_time: "12:00 PM",
-      is_today: false,
-    },
-    {
-      slot_id: 4,
-      course_code: "CS201",
-      course_name: "Data Structures",
-      section_name: "Section C",
-      room_name: "Lab 3",
-      day_of_week: "Tuesday",
-      start_time: "02:00 PM",
-      end_time: "04:00 PM",
-      is_today: false,
-    },
-  ]);
+  const [slots, setSlots] = useState([]);
 
   const [selectedSlot, setSelectedSlot] = useState("");
   const [message, setMessage] = useState("");
@@ -70,17 +23,12 @@ function OpenSession() {
   });
 
   // =====================================================
-  // BACKEND VERSION
+  // GET LECTURER / TA SLOTS
   // =====================================================
 
-  /*
   async function getMySlots() {
     try {
-      const response = await api.get("/sessions/my-slots", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.get("/sessions/my-slots");
 
       console.log("My slots:", response.data);
 
@@ -101,21 +49,12 @@ function OpenSession() {
   useEffect(() => {
     getMySlots();
   }, []);
-  */
-
-  // =====================================================
-  // TEMPORARY MOCK VERSION
-  // =====================================================
-
-  useEffect(() => {
-    console.log("Mock slots:", slots);
-  }, [slots]);
 
   // =====================================================
   // OPEN SESSION
   // =====================================================
 
-  function handleOpenSession(e) {
+  async function handleOpenSession(e) {
     e.preventDefault();
 
     setMessage("");
@@ -132,73 +71,35 @@ function OpenSession() {
 
     setLoading(true);
 
-    // ===================================================
-    // BACKEND VERSION
-    // ===================================================
+    try {
+      // ===================================================
+      // OPEN SESSION - BACKEND
+      // ===================================================
 
-    /*
-    async function openSession() {
-      try {
-        const response = await api.post(
-          "/sessions/open",
-          {
-            slot_id: Number(selectedSlot),
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+      const response = await api.post("/sessions/open", {
+        slot_id: Number(selectedSlot),
+      });
 
-        console.log("Opened session:", response.data);
+      console.log("Open session response:", response.data);
 
-        const sessionId = response.data.session_id;
-
-        if (!sessionId) {
-          setMessage("Session opened but no session ID was returned.");
-          return;
-        }
-
-        setMessage("Attendance session opened successfully.");
-
-        navigate("/lecturer/showqr", {
-          state: {
-            sessionId: sessionId,
-          },
-        });
-      } catch (error) {
-        console.log("Open session error:", error);
-        console.log("Response:", error.response);
-        console.log("Data:", error.response?.data);
-
-        setMessage(
-          error.response?.data?.error ||
-            error.response?.data?.message ||
-            "Failed to open attendance session."
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    openSession();
-    */
-
-    // ===================================================
-    // TEMPORARY MOCK VERSION
-    // ===================================================
-
-    setTimeout(() => {
-      const mockSessionId = 12345;
+      // ===================================================
+      // SAVE SESSION DATA
+      // ===================================================
 
       const sessionData = {
-        sessionId: mockSessionId,
-        slotId: selectedSlot,
-        startedAt: new Date().toISOString(),
+        sessionId: response.data.session_id,
+        slotId: response.data.slot_id,
+        startedAt: response.data.opened_at,
+        sessionDate: response.data.session_date,
+        status: response.data.status,
+        rosterCount: response.data.roster_count,
       };
 
-      console.log("Mock session opened:", sessionData);
+      console.log("Session data:", sessionData);
+
+      // ===================================================
+      // SAVE ACTIVE SESSION
+      // ===================================================
 
       localStorage.setItem(
         "lecturerActiveSession",
@@ -209,14 +110,28 @@ function OpenSession() {
 
       setMessage("Attendance session opened successfully.");
 
+      // ===================================================
+      // GO TO QR PAGE
+      // ===================================================
+
       navigate("/lecturer/showqr", {
         state: {
-          sessionId: mockSessionId,
+          sessionId: response.data.session_id,
         },
       });
+    } catch (error) {
+      console.log("Open session error:", error);
+      console.log("Response:", error.response);
+      console.log("Data:", error.response?.data);
 
+      setMessage(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to open attendance session."
+      );
+    } finally {
       setLoading(false);
-    }, 700);
+    }
   }
 
   // =====================================================
@@ -240,44 +155,6 @@ function OpenSession() {
     }
 
     // ===================================================
-    // BACKEND VERSION
-    // ===================================================
-
-    /*
-    async function closeSession() {
-      try {
-        await api.post(
-          "/sessions/close",
-          {
-            session_id: activeSession.sessionId,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        localStorage.removeItem("lecturerActiveSession");
-
-        setActiveSession(null);
-
-        setMessage("Attendance session closed successfully.");
-      } catch (error) {
-        console.log("Close session error:", error);
-
-        setMessage(
-          error.response?.data?.error ||
-            error.response?.data?.message ||
-            "Failed to close attendance session."
-        );
-      }
-    }
-
-    closeSession();
-    */
-
-    // ===================================================
     // TEMPORARY MOCK VERSION
     // ===================================================
 
@@ -287,6 +164,10 @@ function OpenSession() {
 
     setMessage("Attendance session closed successfully.");
   }
+
+  // =====================================================
+  // SELECTED SLOT
+  // =====================================================
 
   const selectedSlotData = slots.find(
     (slot) => String(slot.slot_id) === String(selectedSlot)
@@ -317,7 +198,6 @@ function OpenSession() {
         </p>
       </div>
 
-
       {/* ================= ACTIVE SESSION ================= */}
 
       {activeSession && activeSlotData && (
@@ -347,7 +227,6 @@ function OpenSession() {
 
           </div>
 
-
           <div className="active-session-actions">
 
             <button
@@ -370,7 +249,6 @@ function OpenSession() {
 
         </div>
       )}
-
 
       {/* ================= MAIN GRID ================= */}
 
@@ -395,7 +273,6 @@ function OpenSession() {
             </div>
 
           </div>
-
 
           <form onSubmit={handleOpenSession}>
 
@@ -438,7 +315,6 @@ function OpenSession() {
 
             </div>
 
-
             {/* ================= SELECTED SLOT ================= */}
 
             {selectedSlotData && (
@@ -467,7 +343,6 @@ function OpenSession() {
                   </div>
 
                 </div>
-
 
                 <div className="slot-details">
 
@@ -509,7 +384,6 @@ function OpenSession() {
               </div>
             )}
 
-
             {/* ================= MESSAGE ================= */}
 
             {message && (
@@ -531,7 +405,6 @@ function OpenSession() {
 
               </div>
             )}
-
 
             {/* ================= OPEN BUTTON ================= */}
 
@@ -564,7 +437,6 @@ function OpenSession() {
 
         </div>
 
-
         {/* ================= RIGHT CARD ================= */}
 
         <div className="session-info-card">
@@ -576,7 +448,6 @@ function OpenSession() {
           <h2>
             How it works
           </h2>
-
 
           <div className="info-step">
 
@@ -598,7 +469,6 @@ function OpenSession() {
 
           </div>
 
-
           <div className="info-step">
 
             <div className="step-number">
@@ -619,7 +489,6 @@ function OpenSession() {
 
           </div>
 
-
           <div className="info-step">
 
             <div className="step-number">
@@ -639,7 +508,6 @@ function OpenSession() {
             </div>
 
           </div>
-
 
           <div className="info-step">
 
@@ -662,7 +530,6 @@ function OpenSession() {
 
           </div>
 
-
           <div className="security-note">
 
             <span>
@@ -678,7 +545,6 @@ function OpenSession() {
         </div>
 
       </div>
-
 
       {/* ================= SCHEDULED SESSIONS ================= */}
 
@@ -704,7 +570,6 @@ function OpenSession() {
           </span>
 
         </div>
-
 
         {slots.length === 0 ? (
 
@@ -743,7 +608,6 @@ function OpenSession() {
 
               </thead>
 
-
               <tbody>
 
                 {slots.map((slot) => (
@@ -773,7 +637,6 @@ function OpenSession() {
                       </div>
 
                     </td>
-
 
                     <td>
                       {slot.section_name || "—"}
@@ -834,7 +697,6 @@ function OpenSession() {
 
       </div>
 
-
       {/* ================= QUICK ACTION ================= */}
 
       <div className="quick-action-card">
@@ -858,7 +720,6 @@ function OpenSession() {
           </div>
 
         </div>
-
 
         <button
           type="button"

@@ -4,119 +4,98 @@
   box-sizing: border-box;
 }
 
-/* =========================================================
-   PAGE HEADER
-========================================================= */
+/* ================= HEADER ================= */
 
 .timetable-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 28px;
 }
 
 .timetable-small-title {
-  display: block;
-  margin-bottom: 7px;
-  color: #6b6fe5;
-  font-size: 11px;
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.8px;
+  letter-spacing: 1.2px;
+  color: #6b6fe5;
 }
 
 .timetable-page-header h1 {
   margin: 0;
-  color: #25283b;
-  font-size: 28px;
-  line-height: 1.2;
-  font-weight: 700;
+  font-size: 30px;
+  color: #222;
 }
 
 .timetable-page-header p {
   margin: 8px 0 0;
-  color: #8b93a1;
-  font-size: 13px;
+  color: #777;
+  font-size: 14px;
 }
 
-/* =========================================================
-   MESSAGE
-========================================================= */
+/* ================= MESSAGE ================= */
 
 .timetable-message {
   margin-bottom: 20px;
   padding: 13px 16px;
-  background: #f0f1ff;
-  border: 1px solid #dfe1f8;
-  border-radius: 9px;
-  color: #6267d8;
-  font-size: 13px;
-  font-weight: 500;
+  border-radius: 10px;
+  background: #eeeffd;
+  color: #5559c9;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-/* =========================================================
-   CARD
-========================================================= */
+/* ================= CARD ================= */
 
 .timetable-card {
-  margin-bottom: 20px;
+  background: #fff;
+  border: 1px solid #ececf3;
+  border-radius: 14px;
   padding: 24px;
-  background: #ffffff;
-  border: 1px solid #e8ebf0;
-  border-radius: 13px;
-  box-shadow: 0 2px 10px rgba(30, 41, 59, 0.025);
+  margin-bottom: 24px;
+  box-sizing: border-box;
 }
 
-/* =========================================================
-   CARD HEADER
-========================================================= */
-
-.timetable-card-header {
+.timetable-section-header {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 20px;
   margin-bottom: 22px;
 }
 
-.timetable-card-header h2 {
+.timetable-section-header h2 {
   margin: 0;
-  color: #293241;
-  font-size: 17px;
+  color: #252525;
+  font-size: 19px;
+}
+
+.timetable-section-header p {
+  margin: 7px 0 0;
+  color: #888;
+  font-size: 13px;
+}
+
+.timetable-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 70px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  background: #eeeffd;
+  color: #6064d5;
+  font-size: 13px;
   font-weight: 700;
 }
 
-.timetable-card-header p {
-  margin: 6px 0 0;
-  color: #8b93a1;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-/* =========================================================
-   SLOTS COUNT
-========================================================= */
-
-.slots-count {
-  flex-shrink: 0;
-  padding: 6px 10px;
-  border-radius: 7px;
-  background: #f0f1ff;
-  color: #6267d8;
-  font-size: 10px;
-  font-weight: 600;
-}
-
-/* =========================================================
-   FORM
-========================================================= */
-
-.timetable-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+/* ================= FORM ================= */
 
 .timetable-form-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
 }
 
 .timetable-form-group {
@@ -126,9 +105,9 @@
 }
 
 .timetable-form-group label {
-  color: #626b78;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
+  color: #444;
 }
 
 .timetable-form-group input,
@@ -136,192 +115,301 @@
   width: 100%;
   height: 42px;
   padding: 0 12px;
-  box-sizing: border-box;
-  border: 1px solid #e1e5eb;
+  border: 1px solid #dddde7;
   border-radius: 8px;
-  background: #ffffff;
-  color: #303544;
-  font-family: inherit;
-  font-size: 13px;
+  background: #fff;
+  color: #333;
+  font-size: 14px;
   outline: none;
-  transition: 0.2s ease;
+  box-sizing: border-box;
+  transition: 0.2s;
 }
 
 .timetable-form-group input:focus,
 .timetable-form-group select:focus {
-  border-color: #8b8fe8;
-  box-shadow: 0 0 0 3px rgba(107, 111, 229, 0.08);
+  border-color: #6b6fe5;
+  box-shadow: 0 0 0 3px rgba(107, 111, 229, 0.1);
 }
 
-/* =========================================================
-   BUTTON
-========================================================= */
+.timetable-form-group select:disabled {
+  background: #f5f5f7;
+  color: #aaa;
+  cursor: not-allowed;
+}
 
-.timetable-button {
-  width: fit-content;
-  min-height: 40px;
-  padding: 0 17px;
+/* ================= FORM BUTTON ================= */
+
+.timetable-form-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.timetable-primary-button {
+  min-height: 42px;
+  padding: 0 20px;
   border: none;
   border-radius: 8px;
   background: #6b6fe5;
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 12px;
+  color: #fff;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.2s;
 }
 
-.timetable-button:hover {
-  background: #5e63d8;
-  transform: translateY(-1px);
+.timetable-primary-button:hover {
+  background: #5d61d4;
 }
 
-/* =========================================================
-   EMPTY STATE
-========================================================= */
-
-.timetable-empty {
-  min-height: 150px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  border: 1px dashed #e1e5eb;
-  border-radius: 9px;
-  background: #fafbfc;
+.timetable-primary-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
-.timetable-empty span {
-  font-size: 26px;
-  color: #b0b5be;
+/* ================= EDIT ================= */
+
+.timetable-edit-card {
+  border: 1px solid #dfe0fb;
+  background: #fafaff;
 }
 
-.timetable-empty p {
-  margin: 0;
-  color: #9aa1ad;
+.timetable-edit-label {
+  display: inline-block;
+  margin-bottom: 7px;
+  color: #6b6fe5;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.timetable-edit-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.timetable-edit-info > div {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #ececf5;
+}
+
+.timetable-edit-info span {
+  display: block;
+  margin-bottom: 5px;
+  color: #888;
   font-size: 12px;
 }
 
-/* =========================================================
-   SLOTS GRID
-========================================================= */
+.timetable-edit-info strong {
+  color: #333;
+  font-size: 14px;
+}
+
+.timetable-cancel-button {
+  padding: 9px 15px;
+  border: 1px solid #dddde7;
+  border-radius: 8px;
+  background: #fff;
+  color: #555;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.timetable-cancel-button:hover {
+  background: #f5f5f7;
+}
+
+/* ================= EMPTY STATE ================= */
+
+.timetable-empty-state {
+  padding: 55px 20px;
+  text-align: center;
+}
+
+.timetable-empty-state span {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 32px;
+  color: #aaa;
+}
+
+.timetable-empty-state h3 {
+  margin: 0;
+  color: #444;
+  font-size: 16px;
+}
+
+.timetable-empty-state p {
+  margin: 8px 0 0;
+  color: #999;
+  font-size: 13px;
+}
+
+/* ================= SLOTS ================= */
 
 .slots-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
 }
-
-/* =========================================================
-   SLOT CARD
-========================================================= */
 
 .slot-card {
   padding: 18px;
-  background: #fafbfc;
-  border: 1px solid #edf0f4;
-  border-radius: 10px;
-  transition: 0.2s ease;
+  border: 1px solid #ececf3;
+  border-radius: 12px;
+  background: #fff;
+  transition: 0.2s;
 }
 
 .slot-card:hover {
-  background: #ffffff;
-  border-color: #dfe1f8;
-  transform: translateY(-2px);
+  border-color: #d9daf5;
+  transform: translateY(-1px);
 }
-
-/* =========================================================
-   SLOT TOP
-========================================================= */
 
 .slot-card-top {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #e8ebf0;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
 .slot-day {
-  color: #343a48;
-  font-size: 14px;
+  padding: 6px 9px;
+  border-radius: 7px;
+  background: #eeeffd;
+  color: #6064d5;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .slot-time {
-  color: #6b6fe5;
+  color: #555;
   font-size: 12px;
   font-weight: 600;
 }
 
-/* =========================================================
-   SLOT COURSE
-========================================================= */
-
-.slot-main-info {
-  padding: 14px 0;
-  border-bottom: 1px solid #e8ebf0;
-}
-
 .slot-course {
-  display: block;
-  color: #343a48;
-  font-size: 13px;
+  margin-bottom: 17px;
+  color: #252525;
+  font-size: 16px;
   font-weight: 700;
-  line-height: 1.5;
+  line-height: 1.4;
 }
-
-/* =========================================================
-   SLOT DETAILS
-========================================================= */
 
 .slot-details {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-top: 14px;
+  gap: 11px;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f4;
 }
 
-.slot-detail {
+.slot-details > div {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
+  align-items: center;
+  gap: 15px;
 }
 
-.slot-label {
-  flex-shrink: 0;
-  color: #8b93a1;
-  font-size: 11px;
+.slot-details span {
+  color: #999;
+  font-size: 12px;
 }
 
-.slot-detail strong {
-  color: #4b5361;
-  font-size: 11px;
-  font-weight: 600;
+.slot-details strong {
+  color: #444;
+  font-size: 13px;
   text-align: right;
-  line-height: 1.5;
 }
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
+/* ================= SLOT ACTIONS ================= */
+
+.slot-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f4;
+}
+
+.timetable-edit-button,
+.timetable-delete-button {
+  flex: 1;
+  height: 38px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.timetable-edit-button {
+  border: 1px solid #d9daf5;
+  background: #eeeffd;
+  color: #5f63d4;
+}
+
+.timetable-edit-button:hover {
+  background: #e4e5fb;
+}
+
+.timetable-delete-button {
+  border: 1px solid #f0d5d5;
+  background: #fff;
+  color: #d05a5a;
+}
+
+.timetable-delete-button:hover {
+  background: #fff4f4;
+}
+
+.timetable-edit-button:disabled,
+.timetable-delete-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ================= RESPONSIVE ================= */
 
 @media (max-width: 1000px) {
   .timetable-form-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .slots-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 800px) {
   .timetable-content {
-    padding: 25px;
+    padding: 24px;
+  }
+
+  .timetable-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .slots-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .timetable-form-actions {
+    align-items: stretch;
+  }
+
+  .timetable-primary-button {
+    width: 100%;
+  }
+
+  .timetable-edit-info {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -334,20 +422,34 @@
     padding: 18px;
   }
 
-  .timetable-page-header h1 {
-    font-size: 24px;
-  }
-
-  .timetable-form-grid,
-  .slots-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .timetable-button {
-    width: 100%;
-  }
-
-  .timetable-card-header {
+  .timetable-section-header {
     flex-direction: column;
+  }
+
+  .timetable-page-header h1 {
+    font-size: 25px;
+  }
+
+  .slot-card-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .slot-details > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .slot-details strong {
+    text-align: left;
+  }
+
+  .slot-actions {
+    flex-direction: column;
+  }
+
+  .timetable-cancel-button {
+    width: 100%;
   }
 }
