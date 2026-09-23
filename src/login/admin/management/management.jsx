@@ -103,9 +103,11 @@ function Management() {
   // CSV IMPORT
   // =========================
   const [csvFile, setCsvFile] = useState(null);
-  const [defaultPassword, setDefaultPassword] = useState("Student@123");
+  const [defaultPassword, setDefaultPassword] =
+    useState("Student@123");
   const [importSectionId, setImportSectionId] = useState("");
-  const [importDepartmentId, setImportDepartmentId] = useState("");
+  const [importDepartmentId, setImportDepartmentId] =
+    useState("");
   const [importMessage, setImportMessage] = useState("");
   const [importResult, setImportResult] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
@@ -151,7 +153,9 @@ function Management() {
         api.get("/admin/timetable-slots"),
       ]);
 
-      const departmentsData = Array.isArray(departmentsResponse.data)
+      const departmentsData = Array.isArray(
+        departmentsResponse.data
+      )
         ? departmentsResponse.data
         : [];
 
@@ -163,11 +167,15 @@ function Management() {
         ? roomsResponse.data
         : [];
 
-      const sectionsData = Array.isArray(sectionsResponse.data)
+      const sectionsData = Array.isArray(
+        sectionsResponse.data
+      )
         ? sectionsResponse.data
         : [];
 
-      const studentsData = Array.isArray(studentsResponse.data)
+      const studentsData = Array.isArray(
+        studentsResponse.data
+      )
         ? studentsResponse.data
         : [];
 
@@ -175,11 +183,15 @@ function Management() {
         ? staffResponse.data
         : [];
 
-      const enrollmentsData = Array.isArray(enrollmentsResponse.data)
+      const enrollmentsData = Array.isArray(
+        enrollmentsResponse.data
+      )
         ? enrollmentsResponse.data
         : [];
 
-      const timetableData = Array.isArray(timetableResponse.data)
+      const timetableData = Array.isArray(
+        timetableResponse.data
+      )
         ? timetableResponse.data
         : [];
 
@@ -270,7 +282,10 @@ function Management() {
       console.log("Add department error:", error);
 
       setMessage(
-        getErrorMessage(error, "Failed to create department.")
+        getErrorMessage(
+          error,
+          "Failed to create department."
+        )
       );
     }
   };
@@ -308,7 +323,12 @@ function Management() {
     } catch (error) {
       console.log("Add course error:", error);
 
-      setMessage(getErrorMessage(error, "Failed to create course."));
+      setMessage(
+        getErrorMessage(
+          error,
+          "Failed to create course."
+        )
+      );
     }
   };
 
@@ -350,7 +370,10 @@ function Management() {
       console.log("Add room error:", error);
 
       setMessage(
-        getErrorMessage(error, "Failed to create room/lab.")
+        getErrorMessage(
+          error,
+          "Failed to create room/lab."
+        )
       );
     }
   };
@@ -393,7 +416,10 @@ function Management() {
       console.log("Add section error:", error);
 
       setMessage(
-        getErrorMessage(error, "Failed to create section.")
+        getErrorMessage(
+          error,
+          "Failed to create section."
+        )
       );
     }
   };
@@ -441,7 +467,40 @@ function Management() {
       console.log("Add student error:", error);
 
       setMessage(
-        getErrorMessage(error, "Failed to create student.")
+        getErrorMessage(
+          error,
+          "Failed to create student."
+        )
+      );
+    }
+  };
+
+  // =========================
+  // DELETE STUDENT
+  // =========================
+  const handleDeleteStudent = async (studentId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this student?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setMessage("");
+
+      await api.delete(`/admin/students/${studentId}`);
+
+      setMessage("Student deleted successfully.");
+
+      await loadData();
+    } catch (error) {
+      console.log("Delete student error:", error);
+
+      setMessage(
+        getErrorMessage(
+          error,
+          "Failed to delete student."
+        )
       );
     }
   };
@@ -475,7 +534,10 @@ function Management() {
       console.log("Enrollment error:", error);
 
       setMessage(
-        getErrorMessage(error, "Failed to enroll student.")
+        getErrorMessage(
+          error,
+          "Failed to enroll student."
+        )
       );
     }
   };
@@ -513,14 +575,19 @@ function Management() {
       setStaffPassword("");
       setStaffType("lecturer");
 
-      setMessage("Teaching staff created successfully.");
+      setMessage(
+        "Teaching staff created successfully."
+      );
 
       await loadData();
     } catch (error) {
       console.log("Add staff error:", error);
 
       setMessage(
-        getErrorMessage(error, "Failed to create teaching staff.")
+        getErrorMessage(
+          error,
+          "Failed to create teaching staff."
+        )
       );
     }
   };
@@ -536,7 +603,9 @@ function Management() {
       !assignStaffId ||
       !assignStaffRole
     ) {
-      setMessage("Please select section, staff and role.");
+      setMessage(
+        "Please select section, staff and role."
+      );
       return;
     }
 
@@ -544,7 +613,9 @@ function Management() {
       setMessage("");
 
       await api.post(
-        `/admin/sections/${Number(assignSectionId)}/staff`,
+        `/admin/sections/${Number(
+          assignSectionId
+        )}/staff`,
         {
           staff_id: Number(assignStaffId),
           staff_role: assignStaffRole,
@@ -555,7 +626,9 @@ function Management() {
       setAssignStaffId("");
       setAssignStaffRole("lecturer");
 
-      setMessage("Staff assigned to section successfully.");
+      setMessage(
+        "Staff assigned to section successfully."
+      );
 
       await loadData();
     } catch (error) {
@@ -588,7 +661,9 @@ function Management() {
     }
 
     if (scheduleEndTime <= scheduleStartTime) {
-      setMessage("End time must be after start time.");
+      setMessage(
+        "End time must be after start time."
+      );
       return;
     }
 
@@ -609,11 +684,16 @@ function Management() {
       setScheduleStartTime("");
       setScheduleEndTime("");
 
-      setMessage("Timetable slot created successfully.");
+      setMessage(
+        "Timetable slot created successfully."
+      );
 
       await loadData();
     } catch (error) {
-      console.log("Add timetable slot error:", error);
+      console.log(
+        "Add timetable slot error:",
+        error
+      );
 
       setMessage(
         getErrorMessage(
@@ -673,27 +753,37 @@ function Management() {
     }
 
     if (editEndTime <= editStartTime) {
-      setMessage("End time must be after start time.");
+      setMessage(
+        "End time must be after start time."
+      );
       return;
     }
 
     try {
       setMessage("");
 
-      await api.patch(`/admin/timetable-slots/${slotId}`, {
-        room_id: Number(editRoomId),
-        day_of_week: editDay,
-        start_time: editStartTime,
-        end_time: editEndTime,
-      });
+      await api.patch(
+        `/admin/timetable-slots/${slotId}`,
+        {
+          room_id: Number(editRoomId),
+          day_of_week: editDay,
+          start_time: editStartTime,
+          end_time: editEndTime,
+        }
+      );
 
       handleCancelEdit();
 
-      setMessage("Timetable slot updated successfully.");
+      setMessage(
+        "Timetable slot updated successfully."
+      );
 
       await loadData();
     } catch (error) {
-      console.log("Update timetable slot error:", error);
+      console.log(
+        "Update timetable slot error:",
+        error
+      );
 
       setMessage(
         getErrorMessage(
@@ -707,7 +797,9 @@ function Management() {
   // =========================
   // DELETE TIMETABLE SLOT
   // =========================
-  const handleDeleteTimetableSlot = async (slotId) => {
+  const handleDeleteTimetableSlot = async (
+    slotId
+  ) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this timetable slot?"
     );
@@ -717,17 +809,24 @@ function Management() {
     try {
       setMessage("");
 
-      await api.delete(`/admin/timetable-slots/${slotId}`);
+      await api.delete(
+        `/admin/timetable-slots/${slotId}`
+      );
 
       if (editingSlotId === slotId) {
         handleCancelEdit();
       }
 
-      setMessage("Timetable slot deleted successfully.");
+      setMessage(
+        "Timetable slot deleted successfully."
+      );
 
       await loadData();
     } catch (error) {
-      console.log("Delete timetable slot error:", error);
+      console.log(
+        "Delete timetable slot error:",
+        error
+      );
 
       setMessage(
         getErrorMessage(
@@ -756,11 +855,16 @@ function Management() {
     e.preventDefault();
 
     if (!csvFile) {
-      setImportMessage("Please select a CSV file.");
+      setImportMessage(
+        "Please select a CSV file."
+      );
       return;
     }
 
-    if (!defaultPassword || defaultPassword.length < 8) {
+    if (
+      !defaultPassword ||
+      defaultPassword.length < 8
+    ) {
       setImportMessage(
         "Default password must be at least 8 characters."
       );
@@ -779,18 +883,26 @@ function Management() {
       )}`;
 
       if (importSectionId) {
-        url += `&section_id=${Number(importSectionId)}`;
+        url += `&section_id=${Number(
+          importSectionId
+        )}`;
       }
 
       if (importDepartmentId) {
-        url += `&department_id=${Number(importDepartmentId)}`;
+        url += `&department_id=${Number(
+          importDepartmentId
+        )}`;
       }
 
-      const response = await api.post(url, csvText, {
-        headers: {
-          "Content-Type": "text/csv",
-        },
-      });
+      const response = await api.post(
+        url,
+        csvText,
+        {
+          headers: {
+            "Content-Type": "text/csv",
+          },
+        }
+      );
 
       setImportResult(response.data);
 
@@ -807,7 +919,10 @@ function Management() {
       console.log("CSV import error:", error);
 
       setImportMessage(
-        getErrorMessage(error, "Failed to import students.")
+        getErrorMessage(
+          error,
+          "Failed to import students."
+        )
       );
     } finally {
       setImportLoading(false);
@@ -820,7 +935,8 @@ function Management() {
   const getDepartmentName = (departmentId) => {
     const department = departments.find(
       (item) =>
-        Number(item.department_id) === Number(departmentId)
+        Number(item.department_id) ===
+        Number(departmentId)
     );
 
     return department?.department_name || "-";
@@ -828,7 +944,9 @@ function Management() {
 
   const getCourseName = (courseId) => {
     const course = courses.find(
-      (item) => Number(item.course_id) === Number(courseId)
+      (item) =>
+        Number(item.course_id) ===
+        Number(courseId)
     );
 
     if (!course) return "-";
@@ -839,23 +957,30 @@ function Management() {
   const getSectionName = (sectionId) => {
     const section = sections.find(
       (item) =>
-        Number(item.section_id) === Number(sectionId)
+        Number(item.section_id) ===
+        Number(sectionId)
     );
 
     if (!section) return "-";
 
-    return `${getCourseName(section.course_id)} - ${section.section_name}`;
+    return `${getCourseName(
+      section.course_id
+    )} - ${section.section_name}`;
   };
 
   const getRoomName = (roomId) => {
     const room = rooms.find(
-      (item) => Number(item.room_id) === Number(roomId)
+      (item) =>
+        Number(item.room_id) ===
+        Number(roomId)
     );
 
     if (!room) return "-";
 
     return `${room.room_name}${
-      room.building ? ` - ${room.building}` : ""
+      room.building
+        ? ` - ${room.building}`
+        : ""
     }`;
   };
 
@@ -873,8 +998,9 @@ function Management() {
           <h1>Management</h1>
 
           <p>
-            Manage departments, courses, rooms, sections,
-            students, staff, enrollments and timetable.
+            Manage departments, courses, rooms,
+            sections, students, staff, enrollments
+            and timetable.
           </p>
         </div>
       </div>
@@ -895,10 +1021,15 @@ function Management() {
         <div className="management-card">
           <div className="management-empty-state">
             <span>◷</span>
-            <h3>Loading management data...</h3>
+
+            <h3>
+              Loading management data...
+            </h3>
+
             <p>
-              Getting departments, courses, rooms, sections,
-              students, staff and timetable.
+              Getting departments, courses, rooms,
+              sections, students, staff and
+              timetable.
             </p>
           </div>
         </div>
@@ -911,7 +1042,10 @@ function Management() {
             <div className="management-section-header">
               <div>
                 <h2>Departments</h2>
-                <p>Create and view departments.</p>
+
+                <p>
+                  Create and view departments.
+                </p>
               </div>
             </div>
 
@@ -920,13 +1054,17 @@ function Management() {
               onSubmit={handleAddDepartment}
             >
               <div className="management-form-group">
-                <label>Department Name</label>
+                <label>
+                  Department Name
+                </label>
 
                 <input
                   type="text"
                   value={departmentName}
                   onChange={(e) =>
-                    setDepartmentName(e.target.value)
+                    setDepartmentName(
+                      e.target.value
+                    )
                   }
                   placeholder="e.g. Computer Science"
                 />
@@ -942,18 +1080,35 @@ function Management() {
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>Department Name</th>
+                    <th>
+                      Department Name
+                    </th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {departments.length > 0 ? (
-                    departments.map((department) => (
-                      <tr key={department.department_id}>
-                        <td>{department.department_id}</td>
-                        <td>{department.department_name}</td>
-                      </tr>
-                    ))
+                    departments.map(
+                      (department) => (
+                        <tr
+                          key={
+                            department.department_id
+                          }
+                        >
+                          <td>
+                            {
+                              department.department_id
+                            }
+                          </td>
+
+                          <td>
+                            {
+                              department.department_name
+                            }
+                          </td>
+                        </tr>
+                      )
+                    )
                   ) : (
                     <tr>
                       <td colSpan="2">
@@ -973,7 +1128,11 @@ function Management() {
             <div className="management-section-header">
               <div>
                 <h2>Courses</h2>
-                <p>Create courses and assign them to departments.</p>
+
+                <p>
+                  Create courses and assign
+                  them to departments.
+                </p>
               </div>
             </div>
 
@@ -982,52 +1141,72 @@ function Management() {
               onSubmit={handleAddCourse}
             >
               <div className="management-form-group">
-                <label>Course Code</label>
+                <label>
+                  Course Code
+                </label>
 
                 <input
                   type="text"
                   value={courseCode}
                   onChange={(e) =>
-                    setCourseCode(e.target.value)
+                    setCourseCode(
+                      e.target.value
+                    )
                   }
                   placeholder="CS101"
                 />
               </div>
 
               <div className="management-form-group">
-                <label>Course Name</label>
+                <label>
+                  Course Name
+                </label>
 
                 <input
                   type="text"
                   value={courseName}
                   onChange={(e) =>
-                    setCourseName(e.target.value)
+                    setCourseName(
+                      e.target.value
+                    )
                   }
                   placeholder="Intro to Programming"
                 />
               </div>
 
               <div className="management-form-group">
-                <label>Department</label>
+                <label>
+                  Department
+                </label>
 
                 <select
                   value={courseDepartmentId}
                   onChange={(e) =>
-                    setCourseDepartmentId(e.target.value)
+                    setCourseDepartmentId(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="">
                     Select Department
                   </option>
 
-                  {departments.map((department) => (
-                    <option
-                      key={department.department_id}
-                      value={department.department_id}
-                    >
-                      {department.department_name}
-                    </option>
-                  ))}
+                  {departments.map(
+                    (department) => (
+                      <option
+                        key={
+                          department.department_id
+                        }
+                        value={
+                          department.department_id
+                        }
+                      >
+                        {
+                          department.department_name
+                        }
+                      </option>
+                    )
+                  )}
                 </select>
               </div>
 
@@ -1043,17 +1222,32 @@ function Management() {
                     <th>ID</th>
                     <th>Course Code</th>
                     <th>Course Name</th>
-                    <th>Department</th>
+                    <th>
+                      Department
+                    </th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {courses.length > 0 ? (
                     courses.map((course) => (
-                      <tr key={course.course_id}>
-                        <td>{course.course_id}</td>
-                        <td>{course.course_code}</td>
-                        <td>{course.course_name}</td>
+                      <tr
+                        key={
+                          course.course_id
+                        }
+                      >
+                        <td>
+                          {course.course_id}
+                        </td>
+
+                        <td>
+                          {course.course_code}
+                        </td>
+
+                        <td>
+                          {course.course_name}
+                        </td>
+
                         <td>
                           {getDepartmentName(
                             course.department_id
@@ -1080,7 +1274,11 @@ function Management() {
             <div className="management-section-header">
               <div>
                 <h2>Rooms & Labs</h2>
-                <p>Create lecture rooms and labs.</p>
+
+                <p>
+                  Create lecture rooms and
+                  labs.
+                </p>
               </div>
             </div>
 
@@ -1095,7 +1293,9 @@ function Management() {
                   type="text"
                   value={roomName}
                   onChange={(e) =>
-                    setRoomName(e.target.value)
+                    setRoomName(
+                      e.target.value
+                    )
                   }
                   placeholder="Lab 1"
                 />
@@ -1108,7 +1308,9 @@ function Management() {
                   type="text"
                   value={building}
                   onChange={(e) =>
-                    setBuilding(e.target.value)
+                    setBuilding(
+                      e.target.value
+                    )
                   }
                   placeholder="Building A"
                 />
@@ -1120,7 +1322,9 @@ function Management() {
                 <select
                   value={roomType}
                   onChange={(e) =>
-                    setRoomType(e.target.value)
+                    setRoomType(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="lecture">
@@ -1141,7 +1345,9 @@ function Management() {
                   min="1"
                   value={roomCapacity}
                   onChange={(e) =>
-                    setRoomCapacity(e.target.value)
+                    setRoomCapacity(
+                      e.target.value
+                    )
                   }
                   placeholder="30"
                 />
@@ -1167,12 +1373,29 @@ function Management() {
                 <tbody>
                   {rooms.length > 0 ? (
                     rooms.map((room) => (
-                      <tr key={room.room_id}>
-                        <td>{room.room_id}</td>
-                        <td>{room.room_name}</td>
-                        <td>{room.building || "-"}</td>
-                        <td>{room.room_type}</td>
-                        <td>{room.capacity}</td>
+                      <tr
+                        key={room.room_id}
+                      >
+                        <td>
+                          {room.room_id}
+                        </td>
+
+                        <td>
+                          {room.room_name}
+                        </td>
+
+                        <td>
+                          {room.building ||
+                            "-"}
+                        </td>
+
+                        <td>
+                          {room.room_type}
+                        </td>
+
+                        <td>
+                          {room.capacity}
+                        </td>
                       </tr>
                     ))
                   ) : (
@@ -1194,7 +1417,11 @@ function Management() {
             <div className="management-section-header">
               <div>
                 <h2>Sections</h2>
-                <p>Create sections for courses.</p>
+
+                <p>
+                  Create sections for
+                  courses.
+                </p>
               </div>
             </div>
 
@@ -1208,7 +1435,9 @@ function Management() {
                 <select
                   value={sectionCourseId}
                   onChange={(e) =>
-                    setSectionCourseId(e.target.value)
+                    setSectionCourseId(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="">
@@ -1218,7 +1447,9 @@ function Management() {
                   {courses.map((course) => (
                     <option
                       key={course.course_id}
-                      value={course.course_id}
+                      value={
+                        course.course_id
+                      }
                     >
                       {course.course_code} -{" "}
                       {course.course_name}
@@ -1228,13 +1459,17 @@ function Management() {
               </div>
 
               <div className="management-form-group">
-                <label>Section Name</label>
+                <label>
+                  Section Name
+                </label>
 
                 <input
                   type="text"
                   value={sectionName}
                   onChange={(e) =>
-                    setSectionName(e.target.value)
+                    setSectionName(
+                      e.target.value
+                    )
                   }
                   placeholder="Section 1"
                 />
@@ -1247,7 +1482,9 @@ function Management() {
                   type="text"
                   value={sectionSemester}
                   onChange={(e) =>
-                    setSectionSemester(e.target.value)
+                    setSectionSemester(
+                      e.target.value
+                    )
                   }
                   placeholder="Fall 2026"
                 />
@@ -1261,7 +1498,9 @@ function Management() {
                   min="1"
                   value={sectionCapacity}
                   onChange={(e) =>
-                    setSectionCapacity(e.target.value)
+                    setSectionCapacity(
+                      e.target.value
+                    )
                   }
                   placeholder="30"
                 />
@@ -1286,23 +1525,41 @@ function Management() {
 
                 <tbody>
                   {sections.length > 0 ? (
-                    sections.map((section) => (
-                      <tr key={section.section_id}>
-                        <td>{section.section_id}</td>
+                    sections.map(
+                      (section) => (
+                        <tr
+                          key={
+                            section.section_id
+                          }
+                        >
+                          <td>
+                            {
+                              section.section_id
+                            }
+                          </td>
 
-                        <td>
-                          {getCourseName(
-                            section.course_id
-                          )}
-                        </td>
+                          <td>
+                            {getCourseName(
+                              section.course_id
+                            )}
+                          </td>
 
-                        <td>{section.section_name}</td>
+                          <td>
+                            {
+                              section.section_name
+                            }
+                          </td>
 
-                        <td>{section.semester}</td>
+                          <td>
+                            {section.semester}
+                          </td>
 
-                        <td>{section.capacity}</td>
-                      </tr>
-                    ))
+                          <td>
+                            {section.capacity}
+                          </td>
+                        </tr>
+                      )
+                    )
                   ) : (
                     <tr>
                       <td colSpan="5">
@@ -1324,8 +1581,9 @@ function Management() {
                 <h2>Timetable</h2>
 
                 <p>
-                  Schedule sections in rooms with specific
-                  days and times.
+                  Schedule sections in rooms
+                  with specific days and
+                  times.
                 </p>
               </div>
             </div>
@@ -1333,7 +1591,9 @@ function Management() {
             {/* ADD SCHEDULE */}
             <form
               className="management-form"
-              onSubmit={handleAddTimetableSlot}
+              onSubmit={
+                handleAddTimetableSlot
+              }
             >
               <div className="management-form-group">
                 <label>Section</label>
@@ -1341,7 +1601,9 @@ function Management() {
                 <select
                   value={scheduleSectionId}
                   onChange={(e) =>
-                    setScheduleSectionId(e.target.value)
+                    setScheduleSectionId(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="">
@@ -1350,10 +1612,17 @@ function Management() {
 
                   {sections.map((section) => (
                     <option
-                      key={section.section_id}
-                      value={section.section_id}
+                      key={
+                        section.section_id
+                      }
+                      value={
+                        section.section_id
+                      }
                     >
-                      {getCourseName(section.course_id)} -{" "}
+                      {getCourseName(
+                        section.course_id
+                      )}{" "}
+                      -{" "}
                       {section.section_name}
                     </option>
                   ))}
@@ -1366,7 +1635,9 @@ function Management() {
                 <select
                   value={scheduleRoomId}
                   onChange={(e) =>
-                    setScheduleRoomId(e.target.value)
+                    setScheduleRoomId(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="">
@@ -1393,11 +1664,16 @@ function Management() {
                 <select
                   value={scheduleDay}
                   onChange={(e) =>
-                    setScheduleDay(e.target.value)
+                    setScheduleDay(
+                      e.target.value
+                    )
                   }
                 >
                   {days.map((day) => (
-                    <option key={day} value={day}>
+                    <option
+                      key={day}
+                      value={day}
+                    >
                       {day}
                     </option>
                   ))}
@@ -1405,25 +1681,35 @@ function Management() {
               </div>
 
               <div className="management-form-group">
-                <label>Start Time</label>
+                <label>
+                  Start Time
+                </label>
 
                 <input
                   type="time"
-                  value={scheduleStartTime}
+                  value={
+                    scheduleStartTime
+                  }
                   onChange={(e) =>
-                    setScheduleStartTime(e.target.value)
+                    setScheduleStartTime(
+                      e.target.value
+                    )
                   }
                 />
               </div>
 
               <div className="management-form-group">
-                <label>End Time</label>
+                <label>
+                  End Time
+                </label>
 
                 <input
                   type="time"
                   value={scheduleEndTime}
                   onChange={(e) =>
-                    setScheduleEndTime(e.target.value)
+                    setScheduleEndTime(
+                      e.target.value
+                    )
                   }
                 />
               </div>
@@ -1439,7 +1725,9 @@ function Management() {
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>Course / Section</th>
+                    <th>
+                      Course / Section
+                    </th>
                     <th>Room</th>
                     <th>Day</th>
                     <th>Start</th>
@@ -1449,168 +1737,215 @@ function Management() {
                 </thead>
 
                 <tbody>
-                  {timetableSlots.length > 0 ? (
-                    timetableSlots.map((slot) => (
-                      <tr key={slot.slot_id}>
-                        <td>{slot.slot_id}</td>
+                  {timetableSlots.length >
+                  0 ? (
+                    timetableSlots.map(
+                      (slot) => (
+                        <tr
+                          key={
+                            slot.slot_id
+                          }
+                        >
+                          <td>
+                            {slot.slot_id}
+                          </td>
 
-                        <td>
-                          {getSectionName(
-                            slot.section_id
-                          )}
-                        </td>
+                          <td>
+                            {getSectionName(
+                              slot.section_id
+                            )}
+                          </td>
 
-                        {/* ROOM */}
-                        <td>
-                          {editingSlotId === slot.slot_id ? (
-                            <select
-                              value={editRoomId}
-                              onChange={(e) =>
-                                setEditRoomId(
-                                  e.target.value
-                                )
-                              }
-                            >
-                              <option value="">
-                                Select Room
-                              </option>
-
-                              {rooms.map((room) => (
-                                <option
-                                  key={room.room_id}
-                                  value={room.room_id}
-                                >
-                                  {room.room_name}
-                                  {room.building
-                                    ? ` - ${room.building}`
-                                    : ""}
+                          {/* ROOM */}
+                          <td>
+                            {editingSlotId ===
+                            slot.slot_id ? (
+                              <select
+                                value={
+                                  editRoomId
+                                }
+                                onChange={(e) =>
+                                  setEditRoomId(
+                                    e.target
+                                      .value
+                                  )
+                                }
+                              >
+                                <option value="">
+                                  Select Room
                                 </option>
-                              ))}
-                            </select>
-                          ) : (
-                            getRoomName(slot.room_id)
-                          )}
-                        </td>
 
-                        {/* DAY */}
-                        <td>
-                          {editingSlotId === slot.slot_id ? (
-                            <select
-                              value={editDay}
-                              onChange={(e) =>
-                                setEditDay(
-                                  e.target.value
-                                )
-                              }
-                            >
-                              {days.map((day) => (
-                                <option
-                                  key={day}
-                                  value={day}
+                                {rooms.map(
+                                  (room) => (
+                                    <option
+                                      key={
+                                        room.room_id
+                                      }
+                                      value={
+                                        room.room_id
+                                      }
+                                    >
+                                      {
+                                        room.room_name
+                                      }
+                                      {room.building
+                                        ? ` - ${room.building}`
+                                        : ""}
+                                    </option>
+                                  )
+                                )}
+                              </select>
+                            ) : (
+                              getRoomName(
+                                slot.room_id
+                              )
+                            )}
+                          </td>
+
+                          {/* DAY */}
+                          <td>
+                            {editingSlotId ===
+                            slot.slot_id ? (
+                              <select
+                                value={
+                                  editDay
+                                }
+                                onChange={(e) =>
+                                  setEditDay(
+                                    e.target
+                                      .value
+                                  )
+                                }
+                              >
+                                {days.map(
+                                  (day) => (
+                                    <option
+                                      key={day}
+                                      value={day}
+                                    >
+                                      {day}
+                                    </option>
+                                  )
+                                )}
+                              </select>
+                            ) : (
+                              slot.day_of_week
+                            )}
+                          </td>
+
+                          {/* START */}
+                          <td>
+                            {editingSlotId ===
+                            slot.slot_id ? (
+                              <input
+                                type="time"
+                                value={
+                                  editStartTime
+                                }
+                                onChange={(e) =>
+                                  setEditStartTime(
+                                    e.target
+                                      .value
+                                  )
+                                }
+                              />
+                            ) : (
+                              String(
+                                slot.start_time ||
+                                  ""
+                              ).slice(
+                                0,
+                                5
+                              )
+                            )}
+                          </td>
+
+                          {/* END */}
+                          <td>
+                            {editingSlotId ===
+                            slot.slot_id ? (
+                              <input
+                                type="time"
+                                value={
+                                  editEndTime
+                                }
+                                onChange={(e) =>
+                                  setEditEndTime(
+                                    e.target
+                                      .value
+                                  )
+                                }
+                              />
+                            ) : (
+                              String(
+                                slot.end_time ||
+                                  ""
+                              ).slice(
+                                0,
+                                5
+                              )
+                            )}
+                          </td>
+
+                          {/* ACTIONS */}
+                          <td>
+                            {editingSlotId ===
+                            slot.slot_id ? (
+                              <div>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleUpdateTimetableSlot(
+                                      slot.slot_id
+                                    )
+                                  }
                                 >
-                                  {day}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            slot.day_of_week
-                          )}
-                        </td>
+                                  Save
+                                </button>
 
-                        {/* START */}
-                        <td>
-                          {editingSlotId === slot.slot_id ? (
-                            <input
-                              type="time"
-                              value={editStartTime}
-                              onChange={(e) =>
-                                setEditStartTime(
-                                  e.target.value
-                                )
-                              }
-                            />
-                          ) : (
-                            String(
-                              slot.start_time || ""
-                            ).slice(0, 5)
-                          )}
-                        </td>
+                                <button
+                                  type="button"
+                                  onClick={
+                                    handleCancelEdit
+                                  }
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <div>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleStartEditSlot(
+                                      slot
+                                    )
+                                  }
+                                >
+                                  Edit
+                                </button>
 
-                        {/* END */}
-                        <td>
-                          {editingSlotId === slot.slot_id ? (
-                            <input
-                              type="time"
-                              value={editEndTime}
-                              onChange={(e) =>
-                                setEditEndTime(
-                                  e.target.value
-                                )
-                              }
-                            />
-                          ) : (
-                            String(
-                              slot.end_time || ""
-                            ).slice(0, 5)
-                          )}
-                        </td>
-
-                        {/* ACTIONS */}
-                        <td>
-                          {editingSlotId === slot.slot_id ? (
-                            <div>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleUpdateTimetableSlot(
-                                    slot.slot_id
-                                  )
-                                }
-                              >
-                                Save
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={
-                                  handleCancelEdit
-                                }
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          ) : (
-                            <div>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleStartEditSlot(
-                                    slot
-                                  )
-                                }
-                              >
-                                Edit
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleDeleteTimetableSlot(
-                                    slot.slot_id
-                                  )
-                                }
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleDeleteTimetableSlot(
+                                      slot.slot_id
+                                    )
+                                  }
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    )
                   ) : (
                     <tr>
                       <td colSpan="7">
-                        No timetable slots found.
+                        No timetable slots
+                        found.
                       </td>
                     </tr>
                   )}
@@ -1626,35 +1961,48 @@ function Management() {
             <div className="management-section-header">
               <div>
                 <h2>Students</h2>
-                <p>Create and view student accounts.</p>
+
+                <p>
+                  Create, view and delete
+                  student accounts.
+                </p>
               </div>
             </div>
 
+            {/* ADD STUDENT */}
             <form
               className="management-form"
               onSubmit={handleAddStudent}
             >
               <div className="management-form-group">
-                <label>Student Code</label>
+                <label>
+                  Student Code
+                </label>
 
                 <input
                   type="text"
                   value={studentCode}
                   onChange={(e) =>
-                    setStudentCode(e.target.value)
+                    setStudentCode(
+                      e.target.value
+                    )
                   }
                   placeholder="S2001"
                 />
               </div>
 
               <div className="management-form-group">
-                <label>Student Name</label>
+                <label>
+                  Student Name
+                </label>
 
                 <input
                   type="text"
                   value={studentName}
                   onChange={(e) =>
-                    setStudentName(e.target.value)
+                    setStudentName(
+                      e.target.value
+                    )
                   }
                   placeholder="Student Name"
                 />
@@ -1667,20 +2015,26 @@ function Management() {
                   type="email"
                   value={studentEmail}
                   onChange={(e) =>
-                    setStudentEmail(e.target.value)
+                    setStudentEmail(
+                      e.target.value
+                    )
                   }
                   placeholder="student@example.com"
                 />
               </div>
 
               <div className="management-form-group">
-                <label>Password</label>
+                <label>
+                  Password
+                </label>
 
                 <input
                   type="password"
                   value={studentPassword}
                   onChange={(e) =>
-                    setStudentPassword(e.target.value)
+                    setStudentPassword(
+                      e.target.value
+                    )
                   }
                   placeholder="At least 8 characters"
                 />
@@ -1695,33 +2049,49 @@ function Management() {
                   max="8"
                   value={studentLevel}
                   onChange={(e) =>
-                    setStudentLevel(e.target.value)
+                    setStudentLevel(
+                      e.target.value
+                    )
                   }
                   placeholder="1"
                 />
               </div>
 
               <div className="management-form-group">
-                <label>Department</label>
+                <label>
+                  Department
+                </label>
 
                 <select
-                  value={studentDepartmentId}
+                  value={
+                    studentDepartmentId
+                  }
                   onChange={(e) =>
-                    setStudentDepartmentId(e.target.value)
+                    setStudentDepartmentId(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="">
                     Select Department
                   </option>
 
-                  {departments.map((department) => (
-                    <option
-                      key={department.department_id}
-                      value={department.department_id}
-                    >
-                      {department.department_name}
-                    </option>
-                  ))}
+                  {departments.map(
+                    (department) => (
+                      <option
+                        key={
+                          department.department_id
+                        }
+                        value={
+                          department.department_id
+                        }
+                      >
+                        {
+                          department.department_name
+                        }
+                      </option>
+                    )
+                  )}
                 </select>
               </div>
 
@@ -1730,45 +2100,93 @@ function Management() {
               </button>
             </form>
 
+            {/* STUDENTS TABLE */}
             <div className="management-table-wrapper">
               <table className="management-table">
                 <thead>
                   <tr>
-                    <th>Student Code</th>
-                    <th>Student Name</th>
+                    <th>
+                      Student Code
+                    </th>
+
+                    <th>
+                      Student Name
+                    </th>
+
                     <th>Email</th>
+
                     <th>Level</th>
-                    <th>Department</th>
+
+                    <th>
+                      Department
+                    </th>
+
                     <th>Status</th>
+
+                    <th>Actions</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {students.length > 0 ? (
-                    students.map((student) => (
-                      <tr key={student.student_id}>
-                        <td>{student.student_code}</td>
-                        <td>{student.student_name}</td>
-                        <td>{student.email}</td>
-                        <td>{student.level}</td>
+                    students.map(
+                      (student) => (
+                        <tr
+                          key={
+                            student.student_id
+                          }
+                        >
+                          <td>
+                            {
+                              student.student_code
+                            }
+                          </td>
 
-                        <td>
-                          {student.department_name ||
-                            getDepartmentName(
-                              student.department_id
-                            )}
-                        </td>
+                          <td>
+                            {
+                              student.student_name
+                            }
+                          </td>
 
-                        <td>
-                          {student.is_active
-                            ? "Active"
-                            : "Inactive"}
-                        </td>
-                      </tr>
-                    ))
+                          <td>
+                            {student.email}
+                          </td>
+
+                          <td>
+                            {student.level}
+                          </td>
+
+                          <td>
+                            {student.department_name ||
+                              getDepartmentName(
+                                student.department_id
+                              )}
+                          </td>
+
+                          <td>
+                            {student.is_active
+                              ? "Active"
+                              : "Inactive"}
+                          </td>
+
+                          <td>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleDeleteStudent(
+                                  student.student_id
+                                )
+                              }
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    )
                   ) : (
                     <tr>
-                      <td colSpan="6">
+                      <td colSpan="7">
                         No students found.
                       </td>
                     </tr>
@@ -1785,7 +2203,11 @@ function Management() {
             <div className="management-section-header">
               <div>
                 <h2>Enrollments</h2>
-                <p>Enroll students in sections.</p>
+
+                <p>
+                  Enroll students in
+                  sections.
+                </p>
               </div>
             </div>
 
@@ -1797,9 +2219,13 @@ function Management() {
                 <label>Student</label>
 
                 <select
-                  value={enrollmentStudentId}
+                  value={
+                    enrollmentStudentId
+                  }
                   onChange={(e) =>
-                    setEnrollmentStudentId(e.target.value)
+                    setEnrollmentStudentId(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="">
@@ -1808,11 +2234,20 @@ function Management() {
 
                   {students.map((student) => (
                     <option
-                      key={student.student_id}
-                      value={student.student_id}
+                      key={
+                        student.student_id
+                      }
+                      value={
+                        student.student_id
+                      }
                     >
-                      {student.student_code} -{" "}
-                      {student.student_name}
+                      {
+                        student.student_code
+                      }{" "}
+                      -{" "}
+                      {
+                        student.student_name
+                      }
                     </option>
                   ))}
                 </select>
@@ -1822,9 +2257,13 @@ function Management() {
                 <label>Section</label>
 
                 <select
-                  value={enrollmentSectionId}
+                  value={
+                    enrollmentSectionId
+                  }
                   onChange={(e) =>
-                    setEnrollmentSectionId(e.target.value)
+                    setEnrollmentSectionId(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="">
@@ -1833,13 +2272,20 @@ function Management() {
 
                   {sections.map((section) => (
                     <option
-                      key={section.section_id}
-                      value={section.section_id}
+                      key={
+                        section.section_id
+                      }
+                      value={
+                        section.section_id
+                      }
                     >
                       {getCourseName(
                         section.course_id
                       )}{" "}
-                      - {section.section_name}
+                      -{" "}
+                      {
+                        section.section_name
+                      }
                     </option>
                   ))}
                 </select>
@@ -1854,55 +2300,85 @@ function Management() {
               <table className="management-table">
                 <thead>
                   <tr>
-                    <th>Student Code</th>
-                    <th>Student Name</th>
+                    <th>
+                      Student Code
+                    </th>
+
+                    <th>
+                      Student Name
+                    </th>
+
                     <th>Course</th>
+
                     <th>Section</th>
+
                     <th>Status</th>
-                    <th>Enrolled At</th>
+
+                    <th>
+                      Enrolled At
+                    </th>
                   </tr>
                 </thead>
 
                 <tbody>
-                  {enrollments.length > 0 ? (
-                    enrollments.map((enrollment) => (
-                      <tr
-                        key={enrollment.enrollment_id}
-                      >
-                        <td>
-                          {enrollment.student_code}
-                        </td>
+                  {enrollments.length >
+                  0 ? (
+                    enrollments.map(
+                      (enrollment) => (
+                        <tr
+                          key={
+                            enrollment.enrollment_id
+                          }
+                        >
+                          <td>
+                            {
+                              enrollment.student_code
+                            }
+                          </td>
 
-                        <td>
-                          {enrollment.student_name}
-                        </td>
+                          <td>
+                            {
+                              enrollment.student_name
+                            }
+                          </td>
 
-                        <td>
-                          {enrollment.course_code} -{" "}
-                          {enrollment.course_name}
-                        </td>
+                          <td>
+                            {
+                              enrollment.course_code
+                            }{" "}
+                            -{" "}
+                            {
+                              enrollment.course_name
+                            }
+                          </td>
 
-                        <td>
-                          {enrollment.section_name}
-                        </td>
+                          <td>
+                            {
+                              enrollment.section_name
+                            }
+                          </td>
 
-                        <td>
-                          {enrollment.status}
-                        </td>
+                          <td>
+                            {
+                              enrollment.status
+                            }
+                          </td>
 
-                        <td>
-                          {enrollment.enrolled_at
-                            ? new Date(
-                                enrollment.enrolled_at
-                              ).toLocaleString()
-                            : "-"}
-                        </td>
-                      </tr>
-                    ))
+                          <td>
+                            {enrollment.enrolled_at
+                              ? new Date(
+                                  enrollment.enrolled_at
+                                ).toLocaleString()
+                              : "-"}
+                          </td>
+                        </tr>
+                      )
+                    )
                   ) : (
                     <tr>
                       <td colSpan="6">
-                        No enrollments found.
+                        No enrollments
+                        found.
                       </td>
                     </tr>
                   )}
@@ -1917,9 +2393,13 @@ function Management() {
           <section className="management-card">
             <div className="management-section-header">
               <div>
-                <h2>Teaching Staff</h2>
+                <h2>
+                  Teaching Staff
+                </h2>
+
                 <p>
-                  Create lecturers and TAs and view staff accounts.
+                  Create lecturers and TAs
+                  and view staff accounts.
                 </p>
               </div>
             </div>
@@ -1929,13 +2409,17 @@ function Management() {
               onSubmit={handleAddStaff}
             >
               <div className="management-form-group">
-                <label>Staff Name</label>
+                <label>
+                  Staff Name
+                </label>
 
                 <input
                   type="text"
                   value={staffName}
                   onChange={(e) =>
-                    setStaffName(e.target.value)
+                    setStaffName(
+                      e.target.value
+                    )
                   }
                   placeholder="Dr Lecturer"
                 />
@@ -1948,32 +2432,42 @@ function Management() {
                   type="email"
                   value={staffEmail}
                   onChange={(e) =>
-                    setStaffEmail(e.target.value)
+                    setStaffEmail(
+                      e.target.value
+                    )
                   }
                   placeholder="lecturer@example.com"
                 />
               </div>
 
               <div className="management-form-group">
-                <label>Password</label>
+                <label>
+                  Password
+                </label>
 
                 <input
                   type="password"
                   value={staffPassword}
                   onChange={(e) =>
-                    setStaffPassword(e.target.value)
+                    setStaffPassword(
+                      e.target.value
+                    )
                   }
                   placeholder="At least 8 characters"
                 />
               </div>
 
               <div className="management-form-group">
-                <label>Staff Type</label>
+                <label>
+                  Staff Type
+                </label>
 
                 <select
                   value={staffType}
                   onChange={(e) =>
-                    setStaffType(e.target.value)
+                    setStaffType(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="lecturer">
@@ -1987,26 +2481,40 @@ function Management() {
               </div>
 
               <div className="management-form-group">
-                <label>Department</label>
+                <label>
+                  Department
+                </label>
 
                 <select
-                  value={staffDepartmentId}
+                  value={
+                    staffDepartmentId
+                  }
                   onChange={(e) =>
-                    setStaffDepartmentId(e.target.value)
+                    setStaffDepartmentId(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="">
                     Select Department
                   </option>
 
-                  {departments.map((department) => (
-                    <option
-                      key={department.department_id}
-                      value={department.department_id}
-                    >
-                      {department.department_name}
-                    </option>
-                  ))}
+                  {departments.map(
+                    (department) => (
+                      <option
+                        key={
+                          department.department_id
+                        }
+                        value={
+                          department.department_id
+                        }
+                      >
+                        {
+                          department.department_name
+                        }
+                      </option>
+                    )
+                  )}
                 </select>
               </div>
 
@@ -2019,10 +2527,20 @@ function Management() {
               <table className="management-table">
                 <thead>
                   <tr>
-                    <th>Staff Name</th>
+                    <th>
+                      Staff Name
+                    </th>
+
                     <th>Email</th>
-                    <th>Staff Type</th>
-                    <th>Department</th>
+
+                    <th>
+                      Staff Type
+                    </th>
+
+                    <th>
+                      Department
+                    </th>
+
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -2030,10 +2548,24 @@ function Management() {
                 <tbody>
                   {staff.length > 0 ? (
                     staff.map((member) => (
-                      <tr key={member.staff_id}>
-                        <td>{member.staff_name}</td>
-                        <td>{member.email}</td>
-                        <td>{member.staff_type}</td>
+                      <tr
+                        key={
+                          member.staff_id
+                        }
+                      >
+                        <td>
+                          {
+                            member.staff_name
+                          }
+                        </td>
+
+                        <td>
+                          {member.email}
+                        </td>
+
+                        <td>
+                          {member.staff_type}
+                        </td>
 
                         <td>
                           {member.department_name ||
@@ -2052,7 +2584,8 @@ function Management() {
                   ) : (
                     <tr>
                       <td colSpan="5">
-                        No teaching staff found.
+                        No teaching staff
+                        found.
                       </td>
                     </tr>
                   )}
@@ -2067,24 +2600,35 @@ function Management() {
           <section className="management-card">
             <div className="management-section-header">
               <div>
-                <h2>Assign Staff to Section</h2>
+                <h2>
+                  Assign Staff to
+                  Section
+                </h2>
+
                 <p>
-                  Assign a lecturer or TA to a course section.
+                  Assign a lecturer or TA
+                  to a course section.
                 </p>
               </div>
             </div>
 
             <form
               className="management-form"
-              onSubmit={handleAssignStaff}
+              onSubmit={
+                handleAssignStaff
+              }
             >
               <div className="management-form-group">
                 <label>Section</label>
 
                 <select
-                  value={assignSectionId}
+                  value={
+                    assignSectionId
+                  }
                   onChange={(e) =>
-                    setAssignSectionId(e.target.value)
+                    setAssignSectionId(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="">
@@ -2093,13 +2637,20 @@ function Management() {
 
                   {sections.map((section) => (
                     <option
-                      key={section.section_id}
-                      value={section.section_id}
+                      key={
+                        section.section_id
+                      }
+                      value={
+                        section.section_id
+                      }
                     >
                       {getCourseName(
                         section.course_id
                       )}{" "}
-                      - {section.section_name}
+                      -{" "}
+                      {
+                        section.section_name
+                      }
                     </option>
                   ))}
                 </select>
@@ -2111,7 +2662,9 @@ function Management() {
                 <select
                   value={assignStaffId}
                   onChange={(e) =>
-                    setAssignStaffId(e.target.value)
+                    setAssignStaffId(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="">
@@ -2120,10 +2673,17 @@ function Management() {
 
                   {staff.map((member) => (
                     <option
-                      key={member.staff_id}
-                      value={member.staff_id}
+                      key={
+                        member.staff_id
+                      }
+                      value={
+                        member.staff_id
+                      }
                     >
-                      {member.staff_name} -{" "}
+                      {
+                        member.staff_name
+                      }{" "}
+                      -{" "}
                       {member.staff_type}
                     </option>
                   ))}
@@ -2131,12 +2691,18 @@ function Management() {
               </div>
 
               <div className="management-form-group">
-                <label>Staff Role</label>
+                <label>
+                  Staff Role
+                </label>
 
                 <select
-                  value={assignStaffRole}
+                  value={
+                    assignStaffRole
+                  }
                   onChange={(e) =>
-                    setAssignStaffRole(e.target.value)
+                    setAssignStaffRole(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="lecturer">
@@ -2161,16 +2727,22 @@ function Management() {
           <section className="management-card">
             <div className="management-section-header">
               <div>
-                <h2>Import Students</h2>
+                <h2>
+                  Import Students
+                </h2>
+
                 <p>
-                  Import student accounts from a CSV file.
+                  Import student accounts
+                  from a CSV file.
                 </p>
               </div>
             </div>
 
             <form
               className="management-form"
-              onSubmit={handleImportStudents}
+              onSubmit={
+                handleImportStudents
+              }
             >
               <div className="management-form-group">
                 <label>CSV File</label>
@@ -2178,57 +2750,85 @@ function Management() {
                 <input
                   type="file"
                   accept=".csv,text/csv"
-                  onChange={handleCsvFileChange}
+                  onChange={
+                    handleCsvFileChange
+                  }
                 />
               </div>
 
               <div className="management-form-group">
-                <label>Default Password</label>
+                <label>
+                  Default Password
+                </label>
 
                 <input
                   type="text"
-                  value={defaultPassword}
+                  value={
+                    defaultPassword
+                  }
                   onChange={(e) =>
-                    setDefaultPassword(e.target.value)
+                    setDefaultPassword(
+                      e.target.value
+                    )
                   }
                   placeholder="Student@123"
                 />
               </div>
 
               <div className="management-form-group">
-                <label>Department</label>
+                <label>
+                  Department
+                </label>
 
                 <select
-                  value={importDepartmentId}
+                  value={
+                    importDepartmentId
+                  }
                   onChange={(e) =>
-                    setImportDepartmentId(e.target.value)
+                    setImportDepartmentId(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="">
                     Select Department
                   </option>
 
-                  {departments.map((department) => (
-                    <option
-                      key={department.department_id}
-                      value={department.department_id}
-                    >
-                      {department.department_name}
-                    </option>
-                  ))}
+                  {departments.map(
+                    (department) => (
+                      <option
+                        key={
+                          department.department_id
+                        }
+                        value={
+                          department.department_id
+                        }
+                      >
+                        {
+                          department.department_name
+                        }
+                      </option>
+                    )
+                  )}
                 </select>
               </div>
 
               <div className="management-form-group">
                 <label>
                   Section{" "}
-                  <span>(optional)</span>
+                  <span>
+                    (optional)
+                  </span>
                 </label>
 
                 <select
-                  value={importSectionId}
+                  value={
+                    importSectionId
+                  }
                   onChange={(e) =>
-                    setImportSectionId(e.target.value)
+                    setImportSectionId(
+                      e.target.value
+                    )
                   }
                 >
                   <option value="">
@@ -2237,13 +2837,20 @@ function Management() {
 
                   {sections.map((section) => (
                     <option
-                      key={section.section_id}
-                      value={section.section_id}
+                      key={
+                        section.section_id
+                      }
+                      value={
+                        section.section_id
+                      }
                     >
                       {getCourseName(
                         section.course_id
                       )}{" "}
-                      - {section.section_name}
+                      -{" "}
+                      {
+                        section.section_name
+                      }
                     </option>
                   ))}
                 </select>
@@ -2268,43 +2875,73 @@ function Management() {
             {importResult && (
               <div className="management-import-result">
                 <div>
-                  <strong>Total:</strong>{" "}
+                  <strong>
+                    Total:
+                  </strong>{" "}
                   {importResult.total}
                 </div>
 
                 <div>
-                  <strong>Created:</strong>{" "}
+                  <strong>
+                    Created:
+                  </strong>{" "}
                   {importResult.created}
                 </div>
 
                 <div>
-                  <strong>Rejected:</strong>{" "}
+                  <strong>
+                    Rejected:
+                  </strong>{" "}
                   {importResult.rejected}
                 </div>
 
-                {importResult.rejected_rows?.length > 0 && (
+                {importResult
+                  .rejected_rows?.length >
+                  0 && (
                   <div className="management-rejected-rows">
-                    <h4>Rejected Rows</h4>
+                    <h4>
+                      Rejected Rows
+                    </h4>
 
                     <div className="management-table-wrapper">
                       <table className="management-table">
                         <thead>
                           <tr>
                             <th>Row</th>
-                            <th>Student Code</th>
-                            <th>Reason</th>
+                            <th>
+                              Student Code
+                            </th>
+                            <th>
+                              Reason
+                            </th>
                           </tr>
                         </thead>
 
                         <tbody>
                           {importResult.rejected_rows.map(
-                            (row, index) => (
-                              <tr key={index}>
-                                <td>{row.row}</td>
+                            (
+                              row,
+                              index
+                            ) => (
+                              <tr
+                                key={
+                                  index
+                                }
+                              >
                                 <td>
-                                  {row.student_code || "-"}
+                                  {row.row}
                                 </td>
-                                <td>{row.reason}</td>
+
+                                <td>
+                                  {row.student_code ||
+                                    "-"}
+                                </td>
+
+                                <td>
+                                  {
+                                    row.reason
+                                  }
+                                </td>
                               </tr>
                             )
                           )}
@@ -2318,16 +2955,23 @@ function Management() {
 
             <div className="management-import-help">
               <p>
-                <strong>Required CSV columns:</strong>{" "}
-                student_code, student_name, email
+                <strong>
+                  Required CSV columns:
+                </strong>{" "}
+                student_code,
+                student_name, email
               </p>
 
               <p>
-                <strong>Optional:</strong> level
+                <strong>
+                  Optional:
+                </strong>{" "}
+                level
               </p>
 
               <p>
-                Maximum allowed rows: 1000
+                Maximum allowed rows:
+                1000
               </p>
             </div>
           </section>
