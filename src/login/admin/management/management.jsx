@@ -13,6 +13,7 @@ function Management() {
   const [students, setStudents] = useState([]);
   const [staff, setStaff] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
+  const [timetableSlots, setTimetableSlots] = useState([]);
 
   // =========================
   // GENERAL MESSAGE
@@ -81,6 +82,24 @@ function Management() {
   const [assignStaffRole, setAssignStaffRole] = useState("lecturer");
 
   // =========================
+  // TIMETABLE FORM
+  // =========================
+  const [scheduleSectionId, setScheduleSectionId] = useState("");
+  const [scheduleRoomId, setScheduleRoomId] = useState("");
+  const [scheduleDay, setScheduleDay] = useState("Saturday");
+  const [scheduleStartTime, setScheduleStartTime] = useState("");
+  const [scheduleEndTime, setScheduleEndTime] = useState("");
+
+  // =========================
+  // TIMETABLE EDIT
+  // =========================
+  const [editingSlotId, setEditingSlotId] = useState(null);
+  const [editRoomId, setEditRoomId] = useState("");
+  const [editDay, setEditDay] = useState("");
+  const [editStartTime, setEditStartTime] = useState("");
+  const [editEndTime, setEditEndTime] = useState("");
+
+  // =========================
   // CSV IMPORT
   // =========================
   const [csvFile, setCsvFile] = useState(null);
@@ -90,6 +109,19 @@ function Management() {
   const [importMessage, setImportMessage] = useState("");
   const [importResult, setImportResult] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
+
+  // =========================
+  // DAYS
+  // =========================
+  const days = [
+    "Saturday",
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+  ];
 
   // =========================
   // LOAD ALL DATA
@@ -107,6 +139,7 @@ function Management() {
         studentsResponse,
         staffResponse,
         enrollmentsResponse,
+        timetableResponse,
       ] = await Promise.all([
         api.get("/admin/departments"),
         api.get("/admin/courses"),
@@ -115,6 +148,7 @@ function Management() {
         api.get("/admin/students"),
         api.get("/admin/staff"),
         api.get("/admin/enrollments"),
+        api.get("/admin/timetable-slots"),
       ]);
 
       const departmentsData = Array.isArray(departmentsResponse.data)
@@ -145,6 +179,10 @@ function Management() {
         ? enrollmentsResponse.data
         : [];
 
+      const timetableData = Array.isArray(timetableResponse.data)
+        ? timetableResponse.data
+        : [];
+
       setDepartments(departmentsData);
       setCourses(coursesData);
       setRooms(roomsData);
@@ -152,6 +190,7 @@ function Management() {
       setStudents(studentsData);
       setStaff(staffData);
       setEnrollments(enrollmentsData);
+      setTimetableSlots(timetableData);
 
       // Set first department automatically
       if (departmentsData.length > 0) {
@@ -532,6 +571,174 @@ function Management() {
   };
 
   // =========================
+  // ADD TIMETABLE SLOT
+  // =========================
+  const handleAddTimetableSlot = async (e) => {
+    e.preventDefault();
+
+    if (
+      !scheduleSectionId ||
+      !scheduleRoomId ||
+      !scheduleDay ||
+      !scheduleStartTime ||
+      !scheduleEndTime
+    ) {
+      setMessage("Please fill all schedule fields.");
+      return;
+    }
+
+    if (scheduleEndTime <= scheduleStartTime) {
+      setMessage("End time must be after start time.");
+      return;
+    }
+
+    try {
+      setMessage("");
+
+      await api.post("/admin/timetable-slots", {
+        section_id: Number(scheduleSectionId),
+        room_id: Number(scheduleRoomId),
+        day_of_week: scheduleDay,
+        start_time: scheduleStartTime,
+        end_time: scheduleEndTime,
+      });
+
+      setScheduleSectionId("");
+      setScheduleRoomId("");
+      setScheduleDay("Saturday");
+      setScheduleStartTime("");
+      setScheduleEndTime("");
+
+      setMessage("Timetable slot created successfully.");
+
+      await loadData();
+    } catch (error) {
+      console.log("Add timetable slot error:", error);
+
+      setMessage(
+        getErrorMessage(
+          error,
+          "Failed to create timetable slot."
+        )
+      );
+    }
+  };
+
+  // =========================
+  // START EDIT TIMETABLE
+  // =========================
+  const handleStartEditSlot = (slot) => {
+    setEditingSlotId(slot.slot_id);
+    setEditRoomId(String(slot.room_id));
+    setEditDay(slot.day_of_week);
+
+    setEditStartTime(
+      slot.start_time
+        ? String(slot.start_time).slice(0, 5)
+        : ""
+    );
+
+    setEditEndTime(
+      slot.end_time
+        ? String(slot.end_time).slice(0, 5)
+        : ""
+    );
+
+    setMessage("");
+  };
+
+  // =========================
+  // CANCEL EDIT
+  // =========================
+  const handleCancelEdit = () => {
+    setEditingSlotId(null);
+    setEditRoomId("");
+    setEditDay("");
+    setEditStartTime("");
+    setEditEndTime("");
+  };
+
+  // =========================
+  // UPDATE TIMETABLE SLOT
+  // =========================
+  const handleUpdateTimetableSlot = async (slotId) => {
+    if (
+      !editRoomId ||
+      !editDay ||
+      !editStartTime ||
+      !editEndTime
+    ) {
+      setMessage("Please fill all edit fields.");
+      return;
+    }
+
+    if (editEndTime <= editStartTime) {
+      setMessage("End time must be after start time.");
+      return;
+    }
+
+    try {
+      setMessage("");
+
+      await api.patch(`/admin/timetable-slots/${slotId}`, {
+        room_id: Number(editRoomId),
+        day_of_week: editDay,
+        start_time: editStartTime,
+        end_time: editEndTime,
+      });
+
+      handleCancelEdit();
+
+      setMessage("Timetable slot updated successfully.");
+
+      await loadData();
+    } catch (error) {
+      console.log("Update timetable slot error:", error);
+
+      setMessage(
+        getErrorMessage(
+          error,
+          "Failed to update timetable slot."
+        )
+      );
+    }
+  };
+
+  // =========================
+  // DELETE TIMETABLE SLOT
+  // =========================
+  const handleDeleteTimetableSlot = async (slotId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this timetable slot?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setMessage("");
+
+      await api.delete(`/admin/timetable-slots/${slotId}`);
+
+      if (editingSlotId === slotId) {
+        handleCancelEdit();
+      }
+
+      setMessage("Timetable slot deleted successfully.");
+
+      await loadData();
+    } catch (error) {
+      console.log("Delete timetable slot error:", error);
+
+      setMessage(
+        getErrorMessage(
+          error,
+          "Failed to delete timetable slot."
+        )
+      );
+    }
+  };
+
+  // =========================
   // CSV FILE CHANGE
   // =========================
   const handleCsvFileChange = (e) => {
@@ -593,7 +800,6 @@ function Management() {
 
       setCsvFile(null);
 
-      // Reset file input visually
       e.target.reset();
 
       await loadData();
@@ -632,10 +838,25 @@ function Management() {
 
   const getSectionName = (sectionId) => {
     const section = sections.find(
-      (item) => Number(item.section_id) === Number(sectionId)
+      (item) =>
+        Number(item.section_id) === Number(sectionId)
     );
 
-    return section?.section_name || "-";
+    if (!section) return "-";
+
+    return `${getCourseName(section.course_id)} - ${section.section_name}`;
+  };
+
+  const getRoomName = (roomId) => {
+    const room = rooms.find(
+      (item) => Number(item.room_id) === Number(roomId)
+    );
+
+    if (!room) return "-";
+
+    return `${room.room_name}${
+      room.building ? ` - ${room.building}` : ""
+    }`;
   };
 
   return (
@@ -653,7 +874,7 @@ function Management() {
 
           <p>
             Manage departments, courses, rooms, sections,
-            students, staff and enrollments.
+            students, staff, enrollments and timetable.
           </p>
         </div>
       </div>
@@ -677,7 +898,7 @@ function Management() {
             <h3>Loading management data...</h3>
             <p>
               Getting departments, courses, rooms, sections,
-              students and staff.
+              students, staff and timetable.
             </p>
           </div>
         </div>
@@ -1086,6 +1307,310 @@ function Management() {
                     <tr>
                       <td colSpan="5">
                         No sections found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* ==================================================
+              TIMETABLE
+          ================================================== */}
+          <section className="management-card">
+            <div className="management-section-header">
+              <div>
+                <h2>Timetable</h2>
+
+                <p>
+                  Schedule sections in rooms with specific
+                  days and times.
+                </p>
+              </div>
+            </div>
+
+            {/* ADD SCHEDULE */}
+            <form
+              className="management-form"
+              onSubmit={handleAddTimetableSlot}
+            >
+              <div className="management-form-group">
+                <label>Section</label>
+
+                <select
+                  value={scheduleSectionId}
+                  onChange={(e) =>
+                    setScheduleSectionId(e.target.value)
+                  }
+                >
+                  <option value="">
+                    Select Section
+                  </option>
+
+                  {sections.map((section) => (
+                    <option
+                      key={section.section_id}
+                      value={section.section_id}
+                    >
+                      {getCourseName(section.course_id)} -{" "}
+                      {section.section_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="management-form-group">
+                <label>Room</label>
+
+                <select
+                  value={scheduleRoomId}
+                  onChange={(e) =>
+                    setScheduleRoomId(e.target.value)
+                  }
+                >
+                  <option value="">
+                    Select Room
+                  </option>
+
+                  {rooms.map((room) => (
+                    <option
+                      key={room.room_id}
+                      value={room.room_id}
+                    >
+                      {room.room_name}
+                      {room.building
+                        ? ` - ${room.building}`
+                        : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="management-form-group">
+                <label>Day</label>
+
+                <select
+                  value={scheduleDay}
+                  onChange={(e) =>
+                    setScheduleDay(e.target.value)
+                  }
+                >
+                  {days.map((day) => (
+                    <option key={day} value={day}>
+                      {day}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="management-form-group">
+                <label>Start Time</label>
+
+                <input
+                  type="time"
+                  value={scheduleStartTime}
+                  onChange={(e) =>
+                    setScheduleStartTime(e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="management-form-group">
+                <label>End Time</label>
+
+                <input
+                  type="time"
+                  value={scheduleEndTime}
+                  onChange={(e) =>
+                    setScheduleEndTime(e.target.value)
+                  }
+                />
+              </div>
+
+              <button type="submit">
+                Add Schedule
+              </button>
+            </form>
+
+            {/* TIMETABLE TABLE */}
+            <div className="management-table-wrapper">
+              <table className="management-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Course / Section</th>
+                    <th>Room</th>
+                    <th>Day</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {timetableSlots.length > 0 ? (
+                    timetableSlots.map((slot) => (
+                      <tr key={slot.slot_id}>
+                        <td>{slot.slot_id}</td>
+
+                        <td>
+                          {getSectionName(
+                            slot.section_id
+                          )}
+                        </td>
+
+                        {/* ROOM */}
+                        <td>
+                          {editingSlotId === slot.slot_id ? (
+                            <select
+                              value={editRoomId}
+                              onChange={(e) =>
+                                setEditRoomId(
+                                  e.target.value
+                                )
+                              }
+                            >
+                              <option value="">
+                                Select Room
+                              </option>
+
+                              {rooms.map((room) => (
+                                <option
+                                  key={room.room_id}
+                                  value={room.room_id}
+                                >
+                                  {room.room_name}
+                                  {room.building
+                                    ? ` - ${room.building}`
+                                    : ""}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            getRoomName(slot.room_id)
+                          )}
+                        </td>
+
+                        {/* DAY */}
+                        <td>
+                          {editingSlotId === slot.slot_id ? (
+                            <select
+                              value={editDay}
+                              onChange={(e) =>
+                                setEditDay(
+                                  e.target.value
+                                )
+                              }
+                            >
+                              {days.map((day) => (
+                                <option
+                                  key={day}
+                                  value={day}
+                                >
+                                  {day}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            slot.day_of_week
+                          )}
+                        </td>
+
+                        {/* START */}
+                        <td>
+                          {editingSlotId === slot.slot_id ? (
+                            <input
+                              type="time"
+                              value={editStartTime}
+                              onChange={(e) =>
+                                setEditStartTime(
+                                  e.target.value
+                                )
+                              }
+                            />
+                          ) : (
+                            String(
+                              slot.start_time || ""
+                            ).slice(0, 5)
+                          )}
+                        </td>
+
+                        {/* END */}
+                        <td>
+                          {editingSlotId === slot.slot_id ? (
+                            <input
+                              type="time"
+                              value={editEndTime}
+                              onChange={(e) =>
+                                setEditEndTime(
+                                  e.target.value
+                                )
+                              }
+                            />
+                          ) : (
+                            String(
+                              slot.end_time || ""
+                            ).slice(0, 5)
+                          )}
+                        </td>
+
+                        {/* ACTIONS */}
+                        <td>
+                          {editingSlotId === slot.slot_id ? (
+                            <div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleUpdateTimetableSlot(
+                                    slot.slot_id
+                                  )
+                                }
+                              >
+                                Save
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={
+                                  handleCancelEdit
+                                }
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleStartEditSlot(
+                                    slot
+                                  )
+                                }
+                              >
+                                Edit
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleDeleteTimetableSlot(
+                                    slot.slot_id
+                                  )
+                                }
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="7">
+                        No timetable slots found.
                       </td>
                     </tr>
                   )}

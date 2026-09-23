@@ -363,6 +363,132 @@
 }
 
 /* =========================================================
+   TABLE EDIT INPUTS
+========================================================= */
+
+.management-table td input,
+.management-table td select {
+  height: 34px;
+
+  min-width: 95px;
+
+  padding: 0 9px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #e1e5eb;
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #303544;
+
+  font-family: inherit;
+  font-size: 11px;
+
+  outline: none;
+
+  transition: 0.2s ease;
+}
+
+.management-table td input:hover,
+.management-table td select:hover {
+  border-color: #d4d8e0;
+}
+
+.management-table td input:focus,
+.management-table td select:focus {
+  border-color: #8b8fe8;
+
+  box-shadow: 0 0 0 3px rgba(107, 111, 229, 0.08);
+}
+
+/* =========================================================
+   TABLE ACTIONS
+========================================================= */
+
+.management-table td > div {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+}
+
+.management-table td button {
+  min-height: 32px;
+
+  padding: 0 11px;
+
+  border: 1px solid #e1e5eb;
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #626b78;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.management-table td button:hover {
+  background: #f7f8ff;
+
+  border-color: #cfd2f5;
+
+  color: #6267d8;
+
+  transform: translateY(-1px);
+}
+
+.management-table td button:active {
+  transform: translateY(0);
+}
+
+/* =========================================================
+   EDIT SAVE BUTTON
+========================================================= */
+
+.management-table td button:first-child {
+  color: #6267d8;
+
+  border-color: #dfe1f8;
+
+  background: #f7f8ff;
+}
+
+.management-table td button:first-child:hover {
+  background: #eef0ff;
+
+  border-color: #cfd2f5;
+}
+
+/* =========================================================
+   DELETE BUTTON
+========================================================= */
+
+.management-table td button:last-child {
+  color: #a55d68;
+
+  border-color: #f0dfe2;
+
+  background: #fffafb;
+}
+
+.management-table td button:last-child:hover {
+  background: #fff4f5;
+
+  border-color: #e7c9ce;
+
+  color: #914d59;
+}
+
+/* =========================================================
    EMPTY STATE
 ========================================================= */
 
@@ -590,6 +716,10 @@
   }
 
   .management-table {
-    min-width: 600px;
+    min-width: 700px;
+  }
+
+  .management-table td > div {
+    flex-wrap: wrap;
   }
 }

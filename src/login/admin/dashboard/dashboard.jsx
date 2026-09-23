@@ -65,72 +65,39 @@ function AdminDashboard() {
   // FLAGS
   // =====================================================
 
-  const lowAttendanceFlags = flags.filter(
-    (flag) => flag.type === "low_attendance"
-  );
+  const lowAttendanceFlags = flags.filter((flag) => flag.type === "low_attendance");
 
   return (
     <section className="admin-dashboard-content">
-      {/* =========================
-          PAGE HEADER
-      ========================= */}
 
       <div className="admin-page-header">
         <div>
-          <span className="admin-small-title">
-            ADMINISTRATION
-          </span>
-
+          <span className="admin-small-title">ADMINISTRATION</span>
           <h1>Admin Dashboard</h1>
-
-          <p>
-            Welcome Admin. Here's an overview of attendance.
-          </p>
+          <p>Welcome Admin. Here's an overview of attendance.</p>
         </div>
       </div>
 
-      {/* =========================
-          ERROR
-      ========================= */}
-
       {error && (
-        <div className="admin-dashboard-error">
-          {error}
-        </div>
+        <div className="admin-dashboard-error">{error}</div>
       )}
-
-      {/* =========================
-          LOADING
-      ========================= */}
 
       {loading ? (
         <div className="dashboard-card">
           <div className="dashboard-empty-state">
             <span>◷</span>
-
-            <h3>
-              Loading dashboard...
-            </h3>
-
-            <p>
-              Getting the latest attendance and analytics data.
-            </p>
+            <h3>Loading dashboard...</h3>
+            <p>Getting the latest attendance and analytics data.</p>
           </div>
         </div>
       ) : (
         <>
-          {/* =========================
-              ATTENDANCE OVERVIEW
-          ========================= */}
 
           <section className="attendance-overview">
             <div className="dashboard-section-header">
               <div>
                 <h2>Attendance Overview</h2>
-
-                <p>
-                  Overall attendance statistics across the system.
-                </p>
+                <p>Overall attendance statistics across the system.</p>
               </div>
             </div>
 
@@ -177,23 +144,13 @@ function AdminDashboard() {
             </div>
           </section>
 
-          {/* =========================
-              LOW ATTENDANCE WARNINGS
-          ========================= */}
-
           <section className="dashboard-card">
             <div className="dashboard-section-header">
               <div>
                 <h2>Low Attendance Warnings</h2>
-
-                <p>
-                  Students requiring attendance attention.
-                </p>
+                <p>Students requiring attendance attention.</p>
               </div>
-
-              <span className="warning-count">
-                {lowAttendanceFlags.length}
-              </span>
+              <span className="warning-count">{lowAttendanceFlags.length}</span>
             </div>
 
             {lowAttendanceFlags.length > 0 ? (
